@@ -26,11 +26,9 @@ public class DataForTest {
         ArrayList<ServerObj> people = objectMapper.readValue(inputStream, new TypeReference<List<ServerObj>>() {
         });
         
-//            ArrayList<ServerObj> people2 = objectMapper.readValue("[\n" +
-//"    {\"ServerName\":\"SkyOn_1_OFF\",\"Linq\":\"https://vk.com/skymp\",\"Icon\":\"club194163484\",\"Players\":150,\"Slots\":170,\"Raiting\":9,\"Official\":1}," +
-//"    {\"ServerName\":\"SkyOn_2_None\",\"Linq\":\"https://vk.com/skymp\",\"Icon\":\"club90019663\",\"Players\":66,\"Slots\":255,\"Raiting\":5,\"Official\":0}]", new TypeReference<List<ServerObj>>() {
-//        });
+//            ArrayList<ServerObj> people2 = objectMapper.readValue("на будущее", new TypeReference<List<ServerObj>>() {});       
 //            people2.forEach(System.out::println);
+
      return people;
 }
 }

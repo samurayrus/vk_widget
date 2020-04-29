@@ -1,19 +1,23 @@
-﻿/*
+/*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
 package samurayrus.vk_widget_servers;
 
-import com.vk.api.sdk.client.ClientResponse;
+import com.google.common.io.Resources;
 import com.vk.api.sdk.client.TransportClient;
 import com.vk.api.sdk.client.VkApiClient;
 import com.vk.api.sdk.client.actors.GroupActor;
 import com.vk.api.sdk.exceptions.ClientException;
 import com.vk.api.sdk.httpclient.HttpTransportClient;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -22,6 +26,24 @@ import org.json.simple.JSONObject;
  * @author maxim
  */
 public class NewConVk {
+    
+    private static Integer groupId;
+    private static String groupToken;
+    
+    static{
+        InputStream inputStream;
+        try {
+            Properties prop = new Properties();
+            inputStream = Resources.getResource("GroupLogin.properties").openStream();
+            prop.load(inputStream);
+            groupId = Integer.valueOf(prop.getProperty("GroupId"));
+            groupToken = prop.getProperty("GroupToken");
+            inputStream.close();
+        } catch (IOException ex) {
+            Logger.getLogger(NewConVk.class.getName()).log(Level.SEVERE, null, ex); //испрвить заглушку
+        }
+        
+    }
     
     public static JSONObject getExample() throws IOException
     {
@@ -43,8 +65,8 @@ public class NewConVk {
 //        HttpTransportClient ht = new HttpTransportClient();
 //        ClientResponse cr = ht.get("");
 //        cr.getContent();
-        
-        GroupActor arc = new GroupActor(группа, "Ключ доступа");
+
+        GroupActor arc = new GroupActor(groupId, groupToken);
         
         System.out.println();
         try {
@@ -54,8 +76,8 @@ public class NewConVk {
         }
     }
         
-			
-            //Да, ужасно, но руки пока не дошли привести метод ниже в нормальное состояние
+
+            
     private static JSONObject code(ArrayList<ServerObj> arayContext)
     {
 
@@ -66,12 +88,14 @@ public class NewConVk {
             JSONObject jj1 = new JSONObject();
             JSONObject jj2 = new JSONObject();
             JSONObject jj3 = new JSONObject();
-
-            jo2.put("title", "Всего серверов: ");
-            jo2.put("title_counter",arayContext.size());
-            jo2.put("title_url",Любая вк ссылка);
-            jo2.put("more","Посмотреть ВСЕ");
-            jo2.put("more_url",Любая вк ссылка);
+            int online = 0;
+            for(ServerObj obj:arayContext)
+            {
+                online+=obj.getPlayers();
+            }
+            jo2.put("title", "Общий Онлайн: ");
+            jo2.put("title_counter",online);
+            jo2.put("title_url","https://vk.com/aveloli?z=photo-149959198_457274585%2Falbum-149959198_00%2Frev");
 
             jo3.put("text", "Сервера: ");
             ja.add(jo3);
@@ -98,7 +122,7 @@ public class NewConVk {
             JSONArray ja7 = new JSONArray();
             
             System.out.println(arayContext.size());
-           // for(String[] al: arayContext) хз не пашет
+
            int length = arayContext.size();
            if(length>10) {length=10; System.out.println("More than 10 servers. Its good!");}
            
