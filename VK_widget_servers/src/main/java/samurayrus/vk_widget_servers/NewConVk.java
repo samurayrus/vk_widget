@@ -54,8 +54,8 @@ public class NewConVk {
         }
     }
         
-
-            
+			
+            //Да, ужасно, но руки пока не дошли привести метод ниже в нормальное состояние
     private static JSONObject code(ArrayList<ServerObj> arayContext)
     {
 
