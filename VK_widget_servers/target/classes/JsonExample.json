@@ -1,0 +1,16 @@
+
+
+[
+    {"ServerName":"SkyOn_1_OFF","Linq":"https://vk.com/skymp","Icon":"club194163484","Players":150,"Slots":170,"Raiting":9,"Official":1},
+    {"ServerName":"SkyOn_2_None","Linq":"https://vk.com/skymp","Icon":"club90019663","Players":66,"Slots":255,"Raiting":5,"Official":0},
+    {"ServerName":"SkyOn_3_None","Linq":"https://vk.com/skymp","Icon":"club90019663","Players":287,"Slots":450,"Raiting":7,"Official":0},
+    {"ServerName":"SkyOn_4_Off","Linq":"https://vk.com/skymp","Icon":"club194163484","Players":198,"Slots":999,"Raiting":4,"Official":1},
+    {"ServerName":"SkyOn_5_Off","Linq":"https://vk.com/skymp","Icon":"club194163484","Players":1765,"Slots":2000,"Raiting":8,"Official":1},
+    {"ServerName":"SkyOn_6_None","Linq":"https://vk.com/skymp","Icon":"club90019663","Players":2544,"Slots":3423,"Raiting":3,"Official":0},
+    {"ServerName":"SkyOn_7_None","Linq":"https://vk.com/skymp","Icon":"club90019663","Players":12,"Slots":90,"Raiting":1,"Official":0},
+    {"ServerName":"SkyOn_8_None","Linq":"https://vk.com/skymp","Icon":"club90019663","Players":44,"Slots":55,"Raiting":6,"Official":0},
+    {"ServerName":"SkyOn_9_None","Linq":"https://vk.com/skymp","Icon":"club90019663","Players":89,"Slots":99,"Raiting":5,"Official":0},
+    {"ServerName":"SkyOn_10_None","Linq":"https://vk.com/skymp","Icon":"club90019663","Players":233,"Slots":1233,"Raiting":5,"Official":0},
+    {"ServerName":"SkyOn_11_None","Linq":"https://vk.com/skymp","Icon":"club90019663","Players":45,"Slots":45,"Raiting":5,"Official":0},
+    {"ServerName":"SkyOn_12_None","Linq":"https://vk.com/skymp","Icon":"club90019663","Players":-1,"Slots":-1,"Raiting":3,"Official":0}
+]
