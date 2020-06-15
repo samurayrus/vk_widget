@@ -1,4 +1,4 @@
-/*
+﻿/*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
@@ -28,7 +28,7 @@ import org.json.simple.JSONObject;
 public class NewConVk {
     
     private static Integer groupId;
-    private static String groupToken;
+    private static String groupToken; //Берет группу и токен из файла. Для каждой группы свои.
     
     static{
         InputStream inputStream;
@@ -39,9 +39,8 @@ public class NewConVk {
             groupId = Integer.valueOf(prop.getProperty("GroupId"));
             groupToken = prop.getProperty("GroupToken");
             inputStream.close();
-        } catch (IOException ex) {
-            Logger.getLogger(NewConVk.class.getName()).log(Level.SEVERE, null, ex); //испрвить заглушку
-        }
+        } catch (IOException ex) {Logger.getLogger(NewConVk.class.getName()).log(Level.SEVERE, null, ex);}//испрвить заглушку
+        catch(java.lang.IllegalArgumentException ex) {System.out.println("Properties File Not Found \n");}
         
     }
     
@@ -78,7 +77,7 @@ public class NewConVk {
         
 
             
-    private static JSONObject code(ArrayList<ServerObj> arayContext)
+    private static JSONObject code(ArrayList<ServerObj> arayContext) //Реализация заполнения запроса для создания таблицы очень такое себе. Не хотел текстом делать, в 8 java неудобно.
     {
 
             JSONObject jo =  new JSONObject();
@@ -95,7 +94,7 @@ public class NewConVk {
             }
             jo2.put("title", "Общий Онлайн: ");
             jo2.put("title_counter",online);
-            jo2.put("title_url","https://vk.com/aveloli?z=photo-149959198_457274585%2Falbum-149959198_00%2Frev");
+            jo2.put("title_url","https://vk.com/theadventuresofatypicalknig");
 
             jo3.put("text", "Сервера: ");
             ja.add(jo3);
@@ -163,7 +162,7 @@ public class NewConVk {
  
             jo2.put("head", ja);
             jo2.put("body", ja7);
-            
+            //
             
         //System.out.println(jo2.toString());
         return jo2;

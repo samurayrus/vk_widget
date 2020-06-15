@@ -20,15 +20,18 @@ import java.util.List;
 public class DataForTest {
         public static ArrayList<ServerObj> getServerData() throws IOException {
 
+            try{
         ObjectMapper objectMapper = new ObjectMapper();
 
         InputStream inputStream = Resources.getResource("JsonExample.json").openStream();
         ArrayList<ServerObj> people = objectMapper.readValue(inputStream, new TypeReference<List<ServerObj>>() {
-        });
+        });   //Берет строки из json файла и пихает их в objectMapper, который на их основе генерит objects (ServerObj).
         
+            return people;
+            }catch(java.lang.IllegalArgumentException ex) {System.out.println("File Not Found \n For test"); return null;}  //Дальше, файл использоваться не будет
 //            ArrayList<ServerObj> people2 = objectMapper.readValue("на будущее", new TypeReference<List<ServerObj>>() {});       
 //            people2.forEach(System.out::println);
 
-     return people;
+
 }
 }

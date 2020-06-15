@@ -36,20 +36,52 @@ public class ConsoleCom extends Thread{
     {   
         while(bb)
         {
+            A:
+         {
         System.out.print("Input: ");
-        switch(sc.nextLine())
+        String []com= sc.nextLine().split(" ");
+        
+        switch(com[0])
         {
-            case "pause":pause_widget(); break;
+            case "pause":pause_widget(); break; //Сброс. Возврат к консоли
             case "restart":restart_widget(); break;
-            case "e": start_widget(); break;
-            case "q":exit_widget(); break;
+            case "e": start_widget(); break;  //запуск по дефолту 
+            case "q":exit_widget(); break;    //завершение программы
+            case "timer":   //Присвоение значение таймеру
+                try{
+                    
+                int t= Integer.valueOf(com[1]);
+                if(t>30)
+                timer_set(t);
+                else
+                System.out.println("Error -> \n timer X / where x MIN = 30 (sec)");
+                
+                break;
+                }catch(NumberFormatException ex) {System.out.println("NumberFormatException\n");}
+                 catch(java.lang.ArrayIndexOutOfBoundsException exx){System.out.println("ArrayIndexOutOfBoundsException\n");}
+                finally{System.out.println("Try again \n {timer X} / where X - Integer, not null, MIN 30 (sec)"); break A;}
+                 
+        }
         }
         }
     }
     
     private void pause_widget()
     {
+        if(timer!=null)
         timer.cancel();
+      System.out.println("pause_widget");
+    }
+    
+    private void timer_set(int t)
+    {
+        pause_widget();
+        
+        timerTask = new TimerTt();
+        timer = new Timer(true);
+        timer.scheduleAtFixedRate(timerTask, 0, t*1000); // (50 * 1000 миллисекунд)
+        
+        
       System.out.println("samurayrus.vk_widget_servers.ConsoleCom.pause_widget()"+"ok");
     }
     
@@ -60,8 +92,10 @@ public class ConsoleCom extends Thread{
     
     private void start_widget()
     {
-          timerTask = new TimerTt();
-         timer = new Timer(true);
+        pause_widget();
+        
+        timerTask = new TimerTt();
+        timer = new Timer(true);
         timer.scheduleAtFixedRate(timerTask, 0, 50*1000); // (50 * 1000 миллисекунд)
 
     System.out.println("samurayrus.vk_widget_servers.ConsoleCom.pause_widget()"+"yes");
@@ -69,7 +103,8 @@ public class ConsoleCom extends Thread{
     
     private void exit_widget()
     {
-        timer.cancel();
+        pause_widget();
+        
         setBb(false);
     System.out.println("samurayrus.vk_widget_servers.ConsoleCom.pause_widget()"+"Exit");
     }
