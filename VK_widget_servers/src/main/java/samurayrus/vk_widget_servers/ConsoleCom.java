@@ -24,16 +24,10 @@ public class ConsoleCom extends Thread{
         sc = new Scanner(System.in);
     }
     
-    
-        @Override
-    public void start()
-    {
-        System.out.println("Console_start");
-    }
-    
     @Override
     public void run()
     {   
+        System.out.println("Console_start");
         while(bb)
         {
             A:
