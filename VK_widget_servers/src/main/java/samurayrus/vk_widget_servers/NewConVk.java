@@ -1,4 +1,4 @@
-﻿/*
+/*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
@@ -27,10 +27,12 @@ import org.json.simple.JSONObject;
  */
 public class NewConVk {
     
-    private static Integer groupId;
-    private static String groupToken; //Берет группу и токен из файла. Для каждой группы свои.
+    private static Integer groupId; //id группы. Тут все просто
+    private static String groupToken; //Токен безопасности для доступа к группе. Получается в настройках группы - api и через свое приложение с запросом bridge или,
+    //вроде, как пможно установить дефолтное приложение вк по виджетам и зять его токен.
+   
     
-    static{
+    static{                        //Параметры входа из файла
         InputStream inputStream;
         try {
             Properties prop = new Properties();
@@ -48,7 +50,7 @@ public class NewConVk {
     {
             ArrayList<ServerObj> people = DataForTest.getServerData();
             
-            Collections.sort(people,ServerObj.COMPARE_BY_COUNT); //Сортировка игроки/офф-неофф
+            Collections.sort(people,ServerObj.COMPARE_BY_COUNT); //Сортировка [игроки]/[офф-неофф]
             
         people.forEach(System.out::println);
     
@@ -58,18 +60,18 @@ public class NewConVk {
     
         public static String newCon() throws IOException
     {
-        TransportClient tC = HttpTransportClient.getInstance(); 
+        TransportClient tC = HttpTransportClient.getInstance();  //Канал с vk
         VkApiClient vkC = new VkApiClient(tC);
         
 //        HttpTransportClient ht = new HttpTransportClient();
 //        ClientResponse cr = ht.get("");
 //        cr.getContent();
 
-        GroupActor arc = new GroupActor(groupId, groupToken);
+        GroupActor arc = new GroupActor(groupId, groupToken);  
         
         System.out.println();
         try {
-            return vkC.appWidgets().update(arc, "return "+getExample()+";").type("table").executeAsString();
+            return vkC.appWidgets().update(arc, "return "+getExample()+";").type("table").executeAsString();  //Запрос вк с выводом ответа
         } catch (ClientException ex) {
            return "ClientException";
         }
@@ -94,7 +96,7 @@ public class NewConVk {
             }
             jo2.put("title", "Общий Онлайн: ");
             jo2.put("title_counter",online);
-            jo2.put("title_url","https://vk.com/theadventuresofatypicalknig");
+            jo2.put("title_url","https://vk.com/aveloli?z=photo-149959198_457274585%2Falbum-149959198_00%2Frev");
 
             jo3.put("text", "Сервера: ");
             ja.add(jo3);

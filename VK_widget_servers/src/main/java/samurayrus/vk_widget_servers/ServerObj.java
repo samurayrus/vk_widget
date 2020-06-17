@@ -112,6 +112,8 @@ public class ServerObj{
 
     
     public static final Comparator<ServerObj> COMPARE_BY_COUNT = new Comparator<ServerObj>() {
+        //Сортировка. Игроки 1 серв - игроки 2 серв + значение офф/неофф. В итоге офф всегда будут на вершине.
+        //Макс игроков по плану 2к, т.ч 10к более чем надо.
         @Override
         public int compare(ServerObj lhs, ServerObj rhs) {
             return rhs.getPlayers()- lhs.getPlayers() + rhs.getOfficial()*10000 - lhs.getOfficial()*10000;

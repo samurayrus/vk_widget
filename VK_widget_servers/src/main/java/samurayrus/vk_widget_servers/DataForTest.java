@@ -29,6 +29,7 @@ public class DataForTest {
         
             return people;
             }catch(java.lang.IllegalArgumentException ex) {System.out.println("File Not Found \n For test"); return null;}  //Дальше, файл использоваться не будет
+            
 //            ArrayList<ServerObj> people2 = objectMapper.readValue("на будущее", new TypeReference<List<ServerObj>>() {});       
 //            people2.forEach(System.out::println);
 
