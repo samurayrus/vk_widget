@@ -7,9 +7,7 @@ package samurayrus.vk_widget_servers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.io.Resources;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,21 +16,21 @@ import java.util.List;
  * @author maxim
  */
 public class DataForTest {
-        public static ArrayList<ServerObj> getServerData() throws IOException {
+        public static ArrayList<ServerObj> getServerData(String jsn) throws IOException {
 
             try{
         ObjectMapper objectMapper = new ObjectMapper();
 
-        InputStream inputStream = Resources.getResource("JsonExample.json").openStream();
-        ArrayList<ServerObj> people = objectMapper.readValue(inputStream, new TypeReference<List<ServerObj>>() {
+        System.out.println("Начали объектить");
+       // InputStream inputStream = Resources.getResource("JsonExample.json").openStream();
+        ArrayList<ServerObj> people = objectMapper.readValue(jsn, new TypeReference<List<ServerObj>>() {
         });   //Берет строки из json файла и пихает их в objectMapper, который на их основе генерит objects (ServerObj).
-        
+        System.out.println("Закончили");
             return people;
-            }catch(java.lang.IllegalArgumentException ex) {System.out.println("File Not Found \n For test"); return null;}  //Дальше, файл использоваться не будет
+            } catch(java.lang.IllegalArgumentException ex) {
+                System.out.println("File Not Found \n For test");
+                return null;
+            }
             
-//            ArrayList<ServerObj> people2 = objectMapper.readValue("на будущее", new TypeReference<List<ServerObj>>() {});       
-//            people2.forEach(System.out::println);
-
-
 }
 }

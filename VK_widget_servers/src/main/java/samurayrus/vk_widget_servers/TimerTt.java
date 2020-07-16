@@ -19,7 +19,6 @@ public class TimerTt extends TimerTask{
         @Override
     public void run() {
         System.out.println("TimerTask начал свое выполнение в:" + new Date());
-        
             try {
                 System.out.println("TimerTask закончил и вернул:" + completeTask());
             } catch (IOException ex) {
