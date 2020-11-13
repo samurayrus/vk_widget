@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package samurayrus.vk_widget_servers;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -20,34 +15,28 @@ import java.util.Comparator;
     "online",
     "lastUpdate",
 })
-//    "Linq",
-//    "Icon",
 
-
-//    "Raiting",
- //   "Official"
 public class ServerObj{
 
     @JsonProperty("name")
     private String name;
-//    @JsonProperty("Linq")
-//    private String Linq;
-//    @JsonProperty("Icon")
-//    private String Icon;
+
     @JsonProperty("online")
     private Integer online;
+    
     @JsonProperty("maxPlayers")
     private Integer maxPlayers;
 
     //Игнор
     @JsonProperty("ip")
     private String ip;
+    
     @JsonProperty("port")
     private Integer port;
+    
     @JsonProperty("lastUpdate")
     private Double lastUpdate;
-    //
-//    @JsonProperty("Raiting")
+
     private Integer Raiting;
 //    @JsonProperty("Official")
     private Integer Official;
@@ -87,16 +76,6 @@ public class ServerObj{
         return port;
     }
 
-//    @JsonProperty("Linq")
-//    public void setLinq(String Linq) {
-//        this.Linq = Linq;
-//    }
-//
-//    @JsonProperty("Icon")
-//    public void setIcon(String Icon) {
-//        this.Icon = Icon;
-//    }
-
     @JsonProperty("online")
     public void setOnline(Integer online) {
         this.online = online;
@@ -107,12 +86,8 @@ public class ServerObj{
         this.maxPlayers = maxPlayers;
     }
 
-//    @JsonProperty("Raiting")
-    public void setRaiting(Integer Raiting) {
-        this.Raiting = Raiting;
-    }
-//
-//    @JsonProperty("Official")
+    //Заглушка
+    //@JsonProperty("Official")
     public void setOfficial(Integer Official) {
         this.Official = Official;
     }
@@ -121,16 +96,6 @@ public class ServerObj{
     public String getName() {
         return name;
     }
-
-//    @JsonProperty("Linq")
-//    public String getLinq() {
-//        return Linq;
-//    }
-
-//    @JsonProperty("Icon")
-//    public String getIcon() {
-//        return Icon;
-//    }
 
     @JsonProperty("online")
     public Integer getOnline() {
@@ -142,16 +107,10 @@ public class ServerObj{
         return maxPlayers;
     }
 
-//    @JsonProperty("Raiting")
-    public Integer getRaiting() {
-        if(ip.equals("185.241.192.136")) return 10;
-         else return 0;
-       // return Raiting;
-    }
-
-//    @JsonProperty("Official")
+    // Заглушка
+    // @JsonProperty("Official") 
     public Integer getOfficial() {
-        if(ip.equals("185.241.192.136")) return 1;
+        if(ip.equals(NewConVk.getOfficialServerIp()) || ip.equals("ServerList is Empty")) return 1;
          else return 0;
     }
 
@@ -170,12 +129,9 @@ public class ServerObj{
     public String toString() {
         return "ServerObj{" +
                 "ServerName=" + name +
-                //", Linq='" + Linq + '\'' +
-                //", Icon='" + Icon + '\'' +
                 ", IP='" + getIp() + '\'' +
                 ", Players='" + online + '\'' +
                 ", Slots='" + maxPlayers + '\'' +
-                ", Raiting='" + getRaiting() + '\'' +
                 ", Official='" + getOfficial() + '\'' +
                 '}';
     }
