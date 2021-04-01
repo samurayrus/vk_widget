@@ -4,13 +4,13 @@ import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
 import java.io.IOException;
 /**
+ * При использовании кода этого проекта, укажите того, кто вам сэкономил нехило так времени (меня)
  * @author SamurayRus
- */ // me
-
-//@Resources("WidgetJ")
-public class widget_main {
+ */
+// me
+public class Widget_main {
     public static void main(String[] args) throws ApiException, ClientException, IOException {
-        ConsoleCom cO = new ConsoleCom();
-        cO.start();
+        ConsoleCommandLine consoleCommandLine = new ConsoleCommandLine();
+        consoleCommandLine.start();
     }
 }
