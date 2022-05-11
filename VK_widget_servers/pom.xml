@@ -18,7 +18,7 @@
         <dependency>
             <groupId>com.vk.api</groupId>
             <artifactId>sdk</artifactId>
-            <version>0.5.12</version>
+            <version>1.0.10</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-jdk14 -->
@@ -91,7 +91,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>samurayrus.vk_widget_servers.widget_main</mainClass>
+                            <mainClass>samurayrus.vk_widget_servers.Widget_main</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
