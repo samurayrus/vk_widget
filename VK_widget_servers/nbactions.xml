@@ -10,7 +10,8 @@
                 <goal>org.codehaus.mojo:exec-maven-plugin:1.2.1:exec</goal>
             </goals>
             <properties>
-                <exec.args>-Djava.util.logging.config.file=logging.properties -classpath %classpath samurayrus.vk_widget_servers.widget_main</exec.args>
+                <exec.args>-Djava.util.logging.config.file=logging.properties -classpath %classpath
+                    samurayrus.vk_widget_servers.Widget_main</exec.args>
                 <exec.executable>java</exec.executable>
             </properties>
         </action>

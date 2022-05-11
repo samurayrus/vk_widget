@@ -1,7 +1,5 @@
 package samurayrus.vk_widget_servers.log;
 
-import org.omg.CORBA.Environment;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;

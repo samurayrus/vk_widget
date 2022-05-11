@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Properties;
 
+import com.vk.api.sdk.objects.appwidgets.UpdateType;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import samurayrus.vk_widget_servers.log.LoggerFile;
@@ -164,15 +165,15 @@ public class ServerManager {
             if (jsonServersInfoFromSkympApi == null) {
                 return "ClientException";
             }
-            return vkApiClient.appWidgets().update(groupActor, "return " + jsonServersInfoFromSkympApi + ";").type("table").executeAsString();  //Запрос вк с выводом ответа
+            return vkApiClient.appWidgets().update(groupActor, "return " + jsonServersInfoFromSkympApi + ";", UpdateType.TABLE).executeAsString();  //Запрос вк с выводом ответа
         } catch (ClientException ex) {
             return "ClientException";
         }
     }
 
+    //TODO: Переделать составление запроса
     /**
      * Формирует сообщение JSON для VkApi со списком серверов для вывода
-     * TODO: Переделать составление запроса
      */
     private static JSONObject jsonMapperAnswer(ArrayList<ServerObj> listServerObj)
     {
