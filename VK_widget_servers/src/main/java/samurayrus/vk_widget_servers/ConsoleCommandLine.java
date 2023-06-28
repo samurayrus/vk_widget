@@ -22,6 +22,7 @@ public class ConsoleCommandLine extends Thread {
             A:
             try {
                 {
+                    if(!sc.hasNextLine()) continue;
                     System.out.print("Input: ");
                     String[] com = sc.nextLine().split(" ");
 

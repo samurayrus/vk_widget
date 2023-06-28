@@ -6,8 +6,10 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import java.util.Comparator;
 
-/**  Форма для обработки. Данные одного сервера с реализацией фильтра.
- *   Тут некоторые строки не замоканы, т.ч аккуратнее */
+/**
+ * Форма для обработки. Данные одного сервера с реализацией фильтра.
+ * Тут некоторые строки не замоканы, т.ч аккуратнее
+ */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
         "name",

@@ -6,6 +6,10 @@ import com.vk.api.sdk.client.VkApiClient;
 import com.vk.api.sdk.client.actors.GroupActor;
 import com.vk.api.sdk.exceptions.ClientException;
 import com.vk.api.sdk.httpclient.HttpTransportClient;
+import com.vk.api.sdk.objects.appwidgets.UpdateType;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import samurayrus.vk_widget_servers.log.LoggerFile;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -17,15 +21,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Properties;
 
-import com.vk.api.sdk.objects.appwidgets.UpdateType;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import samurayrus.vk_widget_servers.log.LoggerFile;
-
 /**
  * ServerManager проводит полную работу с соединениями и формированием ответов
+ *
  * @author SamurayRus
- * */
+ */
 public class ServerManager {
 
     private static Integer groupId; //id группы. Тут все просто
@@ -172,11 +172,11 @@ public class ServerManager {
     }
 
     //TODO: Переделать составление запроса
+
     /**
      * Формирует сообщение JSON для VkApi со списком серверов для вывода
      */
-    private static JSONObject jsonMapperAnswer(ArrayList<ServerObj> listServerObj)
-    {
+    private static JSONObject jsonMapperAnswer(ArrayList<ServerObj> listServerObj) {
         //Строка для отображения, если серверов не будет
         if (listServerObj.size() == 0) {
             ServerObj serverObjNullInfo = new ServerObj();

@@ -11,7 +11,9 @@ import java.util.List;
 
 public class JsonParser {
 
-    /** Маппит входящий String со SkyMpIp в список объектов серверов {@link ServerObj}.*/
+    /**
+     * Маппит входящий String со SkyMpIp в список объектов серверов {@link ServerObj}.
+     */
     public static ArrayList<ServerObj> getServerData(String jsonResponse) throws IOException {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
