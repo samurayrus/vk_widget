@@ -7,6 +7,9 @@ import com.vk.api.sdk.client.actors.GroupActor;
 import com.vk.api.sdk.exceptions.ClientException;
 import com.vk.api.sdk.httpclient.HttpTransportClient;
 import com.vk.api.sdk.objects.appwidgets.UpdateType;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import samurayrus.vk_widget_servers.log.LoggerFile;
@@ -26,17 +29,24 @@ import java.util.Properties;
  *
  * @author SamurayRus
  */
-public class ServerManager {
 
+public class ServerManager {
     private static int groupId; //id группы
+    @Getter(AccessLevel.NONE)
     private static String groupToken; //Токен безопасности для доступа к группе. Получается в настройках группы - api и через свое приложение с запросом bridge или,
     //вроде, как можно установить дефолтное приложение вк по виджетам и взять его токен.
     private static String URL_address;
+    @Getter
     private static String officialServerIp;
+    @Setter
+    @Getter
     private static boolean safeMode = false;
+    @Setter
+    @Getter
     private static boolean hardSafeMode = false;
-    public static boolean showLocal = false;
-
+    @Setter
+    @Getter
+    private static boolean showLocal = false;
     private static final HashMap<String, String> blackList = new HashMap();
 
     static {
@@ -64,27 +74,6 @@ public class ServerManager {
         return blackList.toString();
     }
 
-    public static void setHardSafeMode(Boolean HardSafeMode) {
-        ServerManager.hardSafeMode = HardSafeMode;
-    }
-
-    public static void setSafeMode(Boolean SafeMode) {
-        ServerManager.safeMode = SafeMode;
-    }
-
-    public static boolean isSafeMode() {
-        return safeMode;
-    }
-
-    public static boolean isHardSafeMode() {
-        return hardSafeMode;
-    }
-
-    public static boolean isShowLocal() {
-        return showLocal;
-    }
-
-
     /**
      * Пропинговка серверов, чтобы не выводть локальные. Эту проверку можно отключить
      */
@@ -92,8 +81,8 @@ public class ServerManager {
         LoggerFile.writeLog("Ping to: " + ip);
         //Проверка на локальный адрес
         if (!showLocal) {
-            String[] ipInArray = ip.split("\\.");
-            if (ipInArray[0].equals("127")) {
+            String[] ipArray = ip.split("\\.");
+            if (ipArray[0].equals("127")) {
                 LoggerFile.writeLog("Local Ip: dont Ping this!");
                 return false;
             }
@@ -179,7 +168,8 @@ public class ServerManager {
             if (jsonServersInfoFromSkympApi == null) {
                 return "ClientException";
             }
-            return vkApiClient.appWidgets().update(groupActor, "return " + jsonServersInfoFromSkympApi + ";", UpdateType.TABLE).executeAsString();  //Запрос вк с выводом ответа
+            //Запрос вк с выводом ответа
+            return vkApiClient.appWidgets().update(groupActor, "return " + jsonServersInfoFromSkympApi + ";", UpdateType.TABLE).executeAsString();
         } catch (ClientException ex) {
             return "ClientException";
         }
@@ -318,11 +308,7 @@ public class ServerManager {
 
         jsonReqestWidget.put("head", jsonWidgetInfo);
         jsonReqestWidget.put("body", jsonServersInfo);
-        LoggerFile.writeLog(" End creatind answer...");
+        LoggerFile.writeLog(" End creating answer...");
         return jsonReqestWidget;
-    }
-
-    public static String getOfficialServerIp() {
-        return officialServerIp;
     }
 }

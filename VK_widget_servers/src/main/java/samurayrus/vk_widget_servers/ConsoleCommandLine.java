@@ -25,7 +25,6 @@ public class ConsoleCommandLine extends Thread {
                 {
                     //for nohup
                     if (!scanner.hasNextLine()) continue;
-                    System.out.print("Input: ");
                     String[] com = scanner.nextLine().split(" ");
 
                     switch (com[0]) {
@@ -67,7 +66,7 @@ public class ConsoleCommandLine extends Thread {
                             break;
 
                         case "local":
-                            ServerManager.showLocal = Boolean.parseBoolean(com[1]);
+                            ServerManager.setShowLocal(Boolean.parseBoolean(com[1]));
                             System.out.println("showLocal servers set " + Boolean.parseBoolean(com[1]));
                             break;
 
@@ -97,7 +96,7 @@ public class ConsoleCommandLine extends Thread {
                             break;
 
                         case "t":   //Присвоение значение таймеру
-                            int newTimerValueInSeconds = Integer.valueOf(com[1]);
+                            int newTimerValueInSeconds = Integer.parseInt(com[1]);
                             if (newTimerValueInSeconds > 30) {
                                 timer_set(newTimerValueInSeconds);
                                 System.out.println("Timer set " + newTimerValueInSeconds);
@@ -163,17 +162,7 @@ public class ConsoleCommandLine extends Thread {
 
     private void exit_widget() {
         pause_widget();
-
-        setWork(false);
+        work = false;
         System.out.println("samurayrus.vk_widget_servers.ConsoleCom.pause_widget() " + "Exit");
     }
-
-    public Boolean getWork() {
-        return work;
-    }
-
-    public void setWork(Boolean work) {
-        this.work = work;
-    }
-
 }
