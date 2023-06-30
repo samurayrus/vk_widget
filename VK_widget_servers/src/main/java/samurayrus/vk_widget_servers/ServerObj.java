@@ -30,7 +30,6 @@ public class ServerObj {
     @JsonProperty("maxPlayers")
     private Integer maxPlayers;
 
-    //Игнор
     @JsonProperty("ip")
     private String ip;
 
@@ -40,9 +39,7 @@ public class ServerObj {
     @JsonProperty("lastUpdate")
     private Double lastUpdate;
 
-    private Integer Raiting;
-    //    @JsonProperty("Official")
-    private Integer Official;
+    private int Official;
 
     @JsonProperty("name")
     public void setName(String name) {
@@ -89,9 +86,7 @@ public class ServerObj {
         this.maxPlayers = maxPlayers;
     }
 
-    //Заглушка
-    //@JsonProperty("Official")
-    public void setOfficial(Integer Official) {
+    public void setOfficial(int Official) {
         this.Official = Official;
     }
 
@@ -110,10 +105,9 @@ public class ServerObj {
         return maxPlayers;
     }
 
-    // Заглушка
-    // @JsonProperty("Official") 
-    public Integer getOfficial() {
-        if (ip.equals(ServerManager.getOfficialServerIp()) || ip.equals("ServerList is Empty")) return 1;
+    //На текущий момент оффициальный сервер записывается в GroupLogin.properties. Если ip сервера указан в prop файле, то он назначается оффициальным
+    public int getOfficial() {
+        if (ip.equals(ServerManager.getOfficialServerIp())) return 1;
         else return 0;
     }
 
@@ -130,11 +124,11 @@ public class ServerObj {
     @Override
     public String toString() {
         return "ServerObj{" +
-                "ServerName=" + name +
+                "ServerName=" + getName() +
                 ", IP='" + getIp() + '\'' +
                 ", PORT='" + getPort() + '\'' +
-                ", Players='" + online + '\'' +
-                ", Slots='" + maxPlayers + '\'' +
+                ", Players='" + getOnline() + '\'' +
+                ", Slots='" + getMaxPlayers() + '\'' +
                 ", Official='" + getOfficial() + '\'' +
                 '}';
     }

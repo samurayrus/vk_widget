@@ -28,25 +28,29 @@ import java.util.Properties;
  */
 public class ServerManager {
 
-    private static Integer groupId; //id группы. Тут все просто
+    private static int groupId; //id группы
     private static String groupToken; //Токен безопасности для доступа к группе. Получается в настройках группы - api и через свое приложение с запросом bridge или,
-    //вроде, как можно установить дефолтное приложение вк по виджетам и зять его токен.
-    private static String URL_adress;
-    private static String OfficialServerIp;
-    private static Boolean SafeMode = false;
-    private static Boolean HardSafeMode = false;
-    private static String path = "/GroupLogin.properties";
+    //вроде, как можно установить дефолтное приложение вк по виджетам и взять его токен.
+    private static String URL_address;
+    private static String officialServerIp;
+    private static boolean safeMode = false;
+    private static boolean hardSafeMode = false;
     public static boolean showLocal = false;
 
-    private static HashMap<String, String> blackList = new HashMap();
+    private static final HashMap<String, String> blackList = new HashMap();
 
-    public static String addBlackListValue(String ip, String text) {
+    static {
+        setPropertyForWidget();
+        blackList.put("25.25.25.25", "test (:");
+    }
+
+    public static String addBlackListValue(final String ip, final String text) {
         LoggerFile.writeLog("addBlackListValue:" + ip + " " + text);
         blackList.put(ip, text);
         return "Ok! BlackList Size now: " + blackList.size();
     }
 
-    public static String deleteBlackListValue(String ip) {
+    public static String deleteBlackListValue(final String ip) {
         if (blackList.containsKey(ip)) {
             blackList.remove(ip);
             LoggerFile.writeLog("deleteBlackListValue:" + ip);
@@ -61,31 +65,35 @@ public class ServerManager {
     }
 
     public static void setHardSafeMode(Boolean HardSafeMode) {
-        ServerManager.HardSafeMode = HardSafeMode;
+        ServerManager.hardSafeMode = HardSafeMode;
     }
 
     public static void setSafeMode(Boolean SafeMode) {
-        ServerManager.SafeMode = SafeMode;
+        ServerManager.safeMode = SafeMode;
     }
 
-    public static Boolean getSafeMode() {
-        return SafeMode;
+    public static boolean isSafeMode() {
+        return safeMode;
     }
 
-    static {
-        setPropertyForWidget();
-        blackList.put("25.25.25.25", "test (:");
+    public static boolean isHardSafeMode() {
+        return hardSafeMode;
     }
+
+    public static boolean isShowLocal() {
+        return showLocal;
+    }
+
 
     /**
      * Пропинговка серверов, чтобы не выводть локальные. Эту проверку можно отключить
      */
-    public static boolean pingThisIp(String ip) {
+    public static boolean pingThisIp(final String ip) {
         LoggerFile.writeLog("Ping to: " + ip);
         //Проверка на локальный адрес
         if (!showLocal) {
-            String[] cas = ip.split("\\.");
-            if (cas[0].equals("127")) {
+            String[] ipInArray = ip.split("\\.");
+            if (ipInArray[0].equals("127")) {
                 LoggerFile.writeLog("Local Ip: dont Ping this!");
                 return false;
             }
@@ -107,20 +115,21 @@ public class ServerManager {
     /**
      * Загрузка Properties для виджета со всеми данными.
      */
-    public static void setPropertyForWidget() { //Параметры входа из файла
+    public static void setPropertyForWidget() {
         try {
             Properties properties = new Properties();
 
-            String pathToProperty = new File(Widget_main.class.getProtectionDomain().getCodeSource().getLocation().getPath()).getParent();
-            File propertyFile = new File(pathToProperty + path);
-            LoggerFile.writeLog("pathToProperty: " + pathToProperty + " / " + path);
+            String pathToProperty = new File(WidgetApp.class.getProtectionDomain().getCodeSource().getLocation().getPath()).getParent();
+            String propertyName = "/GroupLogin.properties";
+            File propertyFile = new File(pathToProperty + propertyName);
+            LoggerFile.writeLog("pathToProperty: " + pathToProperty + " / " + propertyName);
 
             try (FileInputStream fileInputStream = new FileInputStream(propertyFile)) {
                 properties.load(fileInputStream);
-                groupId = Integer.valueOf(properties.getProperty("GroupId"));
+                groupId = Integer.parseInt(properties.getProperty("GroupId"));
                 groupToken = properties.getProperty("GroupToken");
-                URL_adress = properties.getProperty("URL");
-                OfficialServerIp = properties.getProperty("OfficialServerIp");
+                URL_address = properties.getProperty("URL");
+                officialServerIp = properties.getProperty("OfficialServerIp");
             }
         } catch (IOException ioException) {
             LoggerFile.writeLog("ioException" + ioException.getMessage() + System.lineSeparator());
@@ -134,18 +143,23 @@ public class ServerManager {
      */
     public static JSONObject loadServersInfoFromSkympApi() throws IOException {
         try {
-            HttpTransportClient httpTransportClient = new HttpTransportClient(); //Данные с сервера
-            ClientResponse clientResponse = httpTransportClient.get(URL_adress);
+            HttpTransportClient httpTransportClient = new HttpTransportClient();
+            ClientResponse clientResponse = httpTransportClient.get(URL_address);
 
-            LoggerFile.writeLog(" URL: " + URL_adress + System.lineSeparator() + "New Content: " + clientResponse.getContent());
+            LoggerFile.writeLog(" URL: " + URL_address + System.lineSeparator() + "New Content: " + clientResponse.getContent());
 
             ArrayList<ServerObj> serverObjs = JsonParser.getServerData(clientResponse.getContent());
-            Collections.sort(serverObjs, ServerObj.COMPARE_BY_COUNT); //Сортировка [игроки]/[офф-неофф]
 
+            if (serverObjs == null || serverObjs.isEmpty()) {
+                LoggerFile.writeLog(System.lineSeparator() + " loadServersInfoFromSkympApi - no content");
+                return null;
+            }
+            //Сортировка [игроки]/[офф-неофф]
+            Collections.sort(serverObjs, ServerObj.COMPARE_BY_COUNT);
             serverObjs.forEach(System.out::println);
             return jsonMapperAnswer(serverObjs);
         } catch (NullPointerException ex) {
-            LoggerFile.writeLog(System.lineSeparator() + " Properties File Not Found " + System.lineSeparator());
+            LoggerFile.writeLog(System.lineSeparator() + "loadServersInfoFromSkympApi() exception: " + ex.getMessage());
             return null;
         }
 
@@ -241,31 +255,32 @@ public class ServerManager {
 
         //Проверки на включенные моды начало.
         for (int i = 0; i < length; i++) {
-
-            if (SafeMode) { //Проверка на мусорные сервера
+            //Проверка на мусорные сервера
+            if (safeMode) {
                 if (listServerObj.get(i).getOnline() < 2 && listServerObj.get(i).getOfficial() == 0) {
                     if (length < listServerObj.size())
                         length++;
                     continue;
                 }
             }
-            if (HardSafeMode) { //Проверка на не офф сервера
+            //Проверка на не офф сервера
+            if (hardSafeMode) {
                 if (listServerObj.get(i).getOfficial() == 0) {
                     if (length < listServerObj.size())
                         length++;
                     continue;
                 }
             }
-
-            if (blackList.containsKey(listServerObj.get(i).getIp())) { //Проверка на сервера в черном списке
+            //Проверка на сервера в черном списке
+            if (blackList.containsKey(listServerObj.get(i).getIp())) {
                 if (listServerObj.get(i).getOfficial() == 0) {
                     if (length < listServerObj.size())
                         length++;
                     continue;
                 }
             }
-
-            if (listServerObj.get(i).getOfficial() == 0)   //Проверка на локальные сервера
+            //Проверка на локальные сервера
+            if (listServerObj.get(i).getOfficial() == 0)
                 if (!pingThisIp(listServerObj.get(i).getIp())) {
                     LoggerFile.writeLog("Cant ping this" + listServerObj.get(i).toString() + " \n continue;");
                     if (length < listServerObj.size())
@@ -308,6 +323,6 @@ public class ServerManager {
     }
 
     public static String getOfficialServerIp() {
-        return OfficialServerIp;
+        return officialServerIp;
     }
 }

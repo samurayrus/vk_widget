@@ -11,7 +11,7 @@
             </goals>
             <properties>
                 <exec.args>-Djava.util.logging.config.file=logging.properties -classpath %classpath
-                    samurayrus.vk_widget_servers.Widget_main</exec.args>
+                    samurayrus.vk_widget_servers.WidgetApp</exec.args>
                 <exec.executable>java</exec.executable>
             </properties>
         </action>

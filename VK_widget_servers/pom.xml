@@ -91,7 +91,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>samurayrus.vk_widget_servers.Widget_main</mainClass>
+                            <mainClass>samurayrus.vk_widget_servers.WidgetApp</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>

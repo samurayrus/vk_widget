@@ -22,7 +22,7 @@ public class JsonParser {
             }
             LoggerFile.writeLog("ObjectMapper begin");
 
-            // InputStream inputStream = Resources.getResource("JsonExample.json").openStream();
+            // InputStream inputStream = Resources.getResource("JsonExampleOld.json").openStream();
             // Берет строки из json файла и пихает их в objectMapper, который на их основе генерит objects (ServerObj).
 
             ArrayList<ServerObj> people = objectMapper.readValue(jsonResponse, new TypeReference<List<ServerObj>>() {
