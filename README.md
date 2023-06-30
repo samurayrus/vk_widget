@@ -12,6 +12,7 @@
 - java -jar /home/user/jar_name.jar - для Linux
 - java -jar C:\Users\user\jar_name.jar - для Windows
 - nohup java -jar ... & (для работы в фоне)
+  
 Команды управления:
 - help [Выводит текущие команды и желает удачи]
 - e [Запуск по дефолту. Обновление раз в 50 секунд]
