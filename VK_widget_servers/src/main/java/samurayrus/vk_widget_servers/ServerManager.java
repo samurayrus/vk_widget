@@ -30,6 +30,8 @@ import java.util.stream.Collectors;
  */
 
 public class ServerManager {
+    private static final Map<String, String> blackList = new HashMap<>();
+    private static final JsonMapper jsonMapper = new JsonMapper();
     private static int groupId; //id группы
     @Getter(AccessLevel.NONE)
     private static String groupToken; //Токен безопасности для доступа к группе. Получается в настройках группы - api и через свое приложение с запросом bridge или,
@@ -46,7 +48,6 @@ public class ServerManager {
     @Setter
     @Getter
     private static boolean showLocal = false;
-    private static final HashMap<String, String> blackList = new HashMap();
 
     static {
         setPropertyForWidget();
@@ -74,7 +75,7 @@ public class ServerManager {
     }
 
     /**
-     * Пропинговка серверов, чтобы не выводть локальные. Эту проверку можно отключить
+     * Пропинговка серверов, чтобы не выводть локальные. Эту проверку можно отключить (showLocal = true)
      */
     public static boolean pingThisIp(final String ip) {
         LoggerFile.writeLog("Ping to: " + ip);
@@ -136,7 +137,7 @@ public class ServerManager {
 
             LoggerFile.writeLog(" URL: " + URL_address + System.lineSeparator() + "New Content: " + clientResponse.getContent());
 
-            ArrayList<ServerObj> serverObjs = JsonParser.getServerData(clientResponse.getContent());
+            ArrayList<ServerObj> serverObjs = jsonMapper.mapJsonToServerObjects(clientResponse.getContent());
 
             if (serverObjs == null || serverObjs.isEmpty()) {
                 LoggerFile.writeLog(System.lineSeparator() + " loadServersInfoFromSkympApi - no content");
@@ -168,7 +169,7 @@ public class ServerManager {
                 return "ClientException: vkMessage is null";
             }
             //Запрос вк с выводом ответа
-            return vkApiClient.appWidgets().update(groupActor, "return " + JsonParser.mapVkMessageToJson(vkMessage) + ";", UpdateType.TABLE).executeAsString();
+            return vkApiClient.appWidgets().update(groupActor, "return " + jsonMapper.mapVkMessageToJson(vkMessage) + ";", UpdateType.TABLE).executeAsString();
         } catch (ClientException ex) {
             return "ClientException: " + ex.getMessage();
         }
