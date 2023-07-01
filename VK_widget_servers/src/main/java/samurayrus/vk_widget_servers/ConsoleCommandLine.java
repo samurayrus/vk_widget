@@ -1,6 +1,7 @@
 package samurayrus.vk_widget_servers;
 
 import java.util.Scanner;
+import java.util.Timer;
 import java.util.TimerTask;
 
 public class ConsoleCommandLine extends Thread {
@@ -8,16 +9,16 @@ public class ConsoleCommandLine extends Thread {
     private final Scanner scanner;
     private boolean work = true;
     private TimerTask timerTask;
-    private java.util.Timer timer;
+    private Timer timer;
     private int timerValueInSeconds = 50;
 
     public ConsoleCommandLine() {
         scanner = new Scanner(System.in);
-        start_widget();
     }
 
     @Override
     public void run() {
+        start_widget();
         System.out.println("Console_start");
         while (work) {
             A:
@@ -141,28 +142,28 @@ public class ConsoleCommandLine extends Thread {
         timer = new java.util.Timer(true);
         timer.scheduleAtFixedRate(timerTask, 0, newTimerValueInSeconds * 1000); // (50 * 1000 миллисекунд)
         timerValueInSeconds = newTimerValueInSeconds;
-        System.out.println("samurayrus.vk_widget_servers.ConsoleCom.pause_widget() " + "ok");
+        System.out.println("samurayrus.vk_widget_servers.ConsoleCom.timer_set() " + "ok");
     }
 
     private void restart_widget() {
         pause_widget();
         ServerManager.setPropertyForWidget();
         start_widget();
-        System.out.println("samurayrus.vk_widget_servers.ConsoleCom.pause_widget() " + "restarted");
+        System.out.println("samurayrus.vk_widget_servers.ConsoleCom.restart_widget() " + "restarted");
     }
 
     private void start_widget() {
         pause_widget();
         timerTask = new SendTimer();
-        timer = new java.util.Timer(true);
+        timer = new Timer(true);
         timer.scheduleAtFixedRate(timerTask, 0, timerValueInSeconds * 1000); // (50 * 1000 миллисекунд)
 
-        System.out.println("samurayrus.vk_widget_servers.ConsoleCom.pause_widget() " + "yes");
+        System.out.println("samurayrus.vk_widget_servers.ConsoleCom.start_widget() " + "yes");
     }
 
     private void exit_widget() {
         pause_widget();
         work = false;
-        System.out.println("samurayrus.vk_widget_servers.ConsoleCom.pause_widget() " + "Exit");
+        System.out.println("samurayrus.vk_widget_servers.ConsoleCom.exit_widget() " + "Exit");
     }
 }

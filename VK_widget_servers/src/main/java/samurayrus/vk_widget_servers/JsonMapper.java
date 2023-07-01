@@ -14,9 +14,9 @@ public class JsonMapper {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
-     * Маппит входящий String со SkyMpIp в список объектов серверов {@link ServerObj}.
+     * Маппит входящий String со SkyMpIp в список объектов серверов {@link ServerInfoDto}.
      */
-    public ArrayList<ServerObj> mapJsonToServerObjects(String jsonResponse) throws IOException {
+    public ArrayList<ServerInfoDto> mapJsonToServerObjects(String jsonResponse) throws IOException {
         LoggerFile.writeLog("ObjectMapper begin");
         if (jsonResponse == null) {
             jsonResponse = "[]";
@@ -25,7 +25,7 @@ public class JsonMapper {
         // InputStream inputStream = Resources.getResource("JsonExampleNew.json").openStream();
         // Берет строки из json файла и пихает их в objectMapper, который на их основе генерит objects (ServerObj).
 
-        ArrayList<ServerObj> people = objectMapper.readValue(jsonResponse, new TypeReference<List<ServerObj>>() {
+        ArrayList<ServerInfoDto> people = objectMapper.readValue(jsonResponse, new TypeReference<List<ServerInfoDto>>() {
         });
 
         LoggerFile.writeLog("ObjectMapper end");

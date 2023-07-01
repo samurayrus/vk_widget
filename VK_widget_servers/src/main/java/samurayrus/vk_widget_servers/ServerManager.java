@@ -128,7 +128,7 @@ public class ServerManager {
     }
 
     /**
-     * Создание нового подключения к SkyMpIo и получение текущих серверов. Возвращает то, что вернет вызов {@link ServerManager#vkMessageCreatorWithFilters(List<ServerObj)} ()}
+     * Создание нового подключения к SkyMpIo и получение текущих серверов. Возвращает то, что вернет вызов {@link ServerManager#vkMessageCreatorWithFilters(List< ServerInfoDto )} ()}
      */
     public static VkMessage loadServersInfoFromSkympApi() throws IOException {
         try {
@@ -137,16 +137,16 @@ public class ServerManager {
 
             LoggerFile.writeLog(" URL: " + URL_address + System.lineSeparator() + "New Content: " + clientResponse.getContent());
 
-            ArrayList<ServerObj> serverObjs = jsonMapper.mapJsonToServerObjects(clientResponse.getContent());
+            ArrayList<ServerInfoDto> serverInfoDtos = jsonMapper.mapJsonToServerObjects(clientResponse.getContent());
 
-            if (serverObjs == null || serverObjs.isEmpty()) {
+            if (serverInfoDtos == null || serverInfoDtos.isEmpty()) {
                 LoggerFile.writeLog(System.lineSeparator() + " loadServersInfoFromSkympApi - no content");
                 return null;
             }
             //Сортировка [игроки]/[офф-неофф]
-            Collections.sort(serverObjs, ServerObj.COMPARE_BY_COUNT);
-            serverObjs.forEach(System.out::println);
-            return vkMessageCreatorWithFilters(serverObjs);
+            Collections.sort(serverInfoDtos, ServerInfoDto.COMPARE_BY_COUNT);
+            serverInfoDtos.forEach(System.out::println);
+            return vkMessageCreatorWithFilters(serverInfoDtos);
         } catch (NullPointerException ex) {
             LoggerFile.writeLog(System.lineSeparator() + "loadServersInfoFromSkympApi() exception: " + ex.getMessage());
             return null;
@@ -179,21 +179,21 @@ public class ServerManager {
     /**
      * Формирует сообщение для VkApi со списком серверов для вывода с учетом заданных условий (показ локальных серверов, hard safe mode, safe mode и тд)
      */
-    private static VkMessage vkMessageCreatorWithFilters(List<ServerObj> listServerObj) {
+    private static VkMessage vkMessageCreatorWithFilters(List<ServerInfoDto> listServerInfoDto) {
         LoggerFile.writeLog(" Begin creating answer...");
         //Строка для отображения, если серверов не будет
-        if (listServerObj.size() == 0) {
-            ServerObj serverObjNullInfo = new ServerObj();
-            serverObjNullInfo.setIp("ServerList is Empty");
-            serverObjNullInfo.setMaxPlayers(0);
-            serverObjNullInfo.setName("None");
-            serverObjNullInfo.setOnline(0);
-            serverObjNullInfo.setPort(0);
-            listServerObj.add(serverObjNullInfo);
+        if (listServerInfoDto.size() == 0) {
+            ServerInfoDto serverInfoDtoNullInfo = new ServerInfoDto();
+            serverInfoDtoNullInfo.setIp("ServerList is Empty");
+            serverInfoDtoNullInfo.setMaxPlayers(0);
+            serverInfoDtoNullInfo.setName("None");
+            serverInfoDtoNullInfo.setOnline(0);
+            serverInfoDtoNullInfo.setPort(0);
+            listServerInfoDto.add(serverInfoDtoNullInfo);
         }
 
         int online = 0;
-        for (ServerObj obj : listServerObj) {
+        for (ServerInfoDto obj : listServerInfoDto) {
             if (obj.getOnline() > 0)
                 online += obj.getOnline();
         }
@@ -203,11 +203,11 @@ public class ServerManager {
         vkMessageHeads[2] = VkMessageHead.builder().text("Игроки/Слоты").align("center").build();
         vkMessageHeads[3] = VkMessageHead.builder().text("Official").align("center").build();
 
-        LoggerFile.writeLog("Servers value: " + listServerObj.size());
+        LoggerFile.writeLog("Servers value: " + listServerInfoDto.size());
 
         //TODO: добавить поддержку большого кол-во серверов. На пропинговку всех много времени уйдет,
         // т.ч нужно пинговать только первые, а если они локальные, то добавлять новые
-        listServerObj = listServerObj.stream()
+        listServerInfoDto = listServerInfoDto.stream()
                 //Сервера в черном списке
                 .filter(x -> !blackList.containsKey(x.getIp()))
                 //Отображение только оффициальных серверов
@@ -218,8 +218,8 @@ public class ServerManager {
                 .filter(x -> showLocal ? true : x.getOfficial() == 1 || pingThisIp(x.getIp()))
                 .collect(Collectors.toList());
 
-        LoggerFile.writeLog("Servers value after filter: " + listServerObj.size());
-        int length = listServerObj.size();
+        LoggerFile.writeLog("Servers value after filter: " + listServerInfoDto.size());
+        int length = listServerInfoDto.size();
         if (length > 10) {
             length = 10;
             LoggerFile.writeLog("More than 10 servers. Its good!");
@@ -227,18 +227,18 @@ public class ServerManager {
         VkMessageBody[][] vkMessageBodies = new VkMessageBody[length][4];
         for (int i = 0; i < length; i++) {
             vkMessageBodies[i][0] = VkMessageBody.builder()
-                    .text(listServerObj.get(i).getIp() + ":" + listServerObj.get(i).getPort())
+                    .text(listServerInfoDto.get(i).getIp() + ":" + listServerInfoDto.get(i).getPort())
                     .icon_id("club194163484") //заглушка
                     .url("https://vk.com/skymp") //заглушка
                     .build();
             vkMessageBodies[i][1] = VkMessageBody.builder()
-                    .text(listServerObj.get(i).getName())
+                    .text(listServerInfoDto.get(i).getName())
                     .build();
             vkMessageBodies[i][2] = VkMessageBody.builder()
-                    .text(listServerObj.get(i).getOnline() + "/" + listServerObj.get(i).getMaxPlayers())
+                    .text(listServerInfoDto.get(i).getOnline() + "/" + listServerInfoDto.get(i).getMaxPlayers())
                     .build();
             vkMessageBodies[i][3] = VkMessageBody.builder()
-                    .text(listServerObj.get(i).getOfficial() == 1 ? "✅" : " ")
+                    .text(listServerInfoDto.get(i).getOfficial() == 1 ? "✅" : " ")
                     .build();
         }
 

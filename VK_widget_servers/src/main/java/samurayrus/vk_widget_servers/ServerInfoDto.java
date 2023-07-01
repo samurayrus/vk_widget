@@ -23,7 +23,7 @@ import java.util.Comparator;
 })
 @Getter
 @Setter
-public class ServerObj {
+public class ServerInfoDto {
     @JsonProperty("name")
     private String name;
 
@@ -50,11 +50,11 @@ public class ServerObj {
         else return 0;
     }
 
-    public static final Comparator<ServerObj> COMPARE_BY_COUNT = new Comparator<ServerObj>() {
+    public static final Comparator<ServerInfoDto> COMPARE_BY_COUNT = new Comparator<ServerInfoDto>() {
         //Сортировка. Игроки 1 серв - игроки 2 серв + значение офф/неофф. В итоге офф всегда будут на вершине.
         //Макс игроков по плану 2к, т.ч 10к более чем надо.
         @Override
-        public int compare(ServerObj lhs, ServerObj rhs) {
+        public int compare(ServerInfoDto lhs, ServerInfoDto rhs) {
             return rhs.getOnline() - lhs.getOnline() + rhs.getOfficial() * 10000 - lhs.getOfficial() * 10000;
         }
     };
