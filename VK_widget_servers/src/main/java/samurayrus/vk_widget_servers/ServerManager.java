@@ -10,19 +10,18 @@ import com.vk.api.sdk.objects.appwidgets.UpdateType;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 import samurayrus.vk_widget_servers.log.LoggerFile;
+import samurayrus.vk_widget_servers.vk.VkMessage;
+import samurayrus.vk_widget_servers.vk.VkMessageBody;
+import samurayrus.vk_widget_servers.vk.VkMessageHead;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Properties;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * ServerManager проводит полную работу с соединениями и формированием ответов
@@ -128,9 +127,9 @@ public class ServerManager {
     }
 
     /**
-     * Создание нового подключения к SkyMpIo и получение текущих серверов. Возвращает то, что вернет вызов {@link ServerManager#jsonMapperAnswer} ()}
+     * Создание нового подключения к SkyMpIo и получение текущих серверов. Возвращает то, что вернет вызов {@link ServerManager#vkMessageCreatorWithFilters(List<ServerObj)} ()}
      */
-    public static JSONObject loadServersInfoFromSkympApi() throws IOException {
+    public static VkMessage loadServersInfoFromSkympApi() throws IOException {
         try {
             HttpTransportClient httpTransportClient = new HttpTransportClient();
             ClientResponse clientResponse = httpTransportClient.get(URL_address);
@@ -146,7 +145,7 @@ public class ServerManager {
             //Сортировка [игроки]/[офф-неофф]
             Collections.sort(serverObjs, ServerObj.COMPARE_BY_COUNT);
             serverObjs.forEach(System.out::println);
-            return jsonMapperAnswer(serverObjs);
+            return vkMessageCreatorWithFilters(serverObjs);
         } catch (NullPointerException ex) {
             LoggerFile.writeLog(System.lineSeparator() + "loadServersInfoFromSkympApi() exception: " + ex.getMessage());
             return null;
@@ -159,28 +158,28 @@ public class ServerManager {
      * Вызывается по таймеру в {@link SendTimer}
      */
     public static String newConnectAndPushInfoInVkApi() throws IOException {
-        TransportClient transportClient = HttpTransportClient.getInstance();  //Канал с vk
+        TransportClient transportClient = HttpTransportClient.getInstance();
         VkApiClient vkApiClient = new VkApiClient(transportClient);
         GroupActor groupActor = new GroupActor(groupId, groupToken);
 
         try {
-            JSONObject jsonServersInfoFromSkympApi = loadServersInfoFromSkympApi();
-            if (jsonServersInfoFromSkympApi == null) {
-                return "ClientException";
+            VkMessage vkMessage = loadServersInfoFromSkympApi();
+            if (vkMessage == null) {
+                return "ClientException: vkMessage is null";
             }
             //Запрос вк с выводом ответа
-            return vkApiClient.appWidgets().update(groupActor, "return " + jsonServersInfoFromSkympApi + ";", UpdateType.TABLE).executeAsString();
+            return vkApiClient.appWidgets().update(groupActor, "return " + JsonParser.mapVkMessageToJson(vkMessage) + ";", UpdateType.TABLE).executeAsString();
         } catch (ClientException ex) {
-            return "ClientException";
+            return "ClientException: " + ex.getMessage();
         }
     }
 
-    //TODO: Переделать составление запроса
 
     /**
-     * Формирует сообщение JSON для VkApi со списком серверов для вывода
+     * Формирует сообщение для VkApi со списком серверов для вывода с учетом заданных условий (показ локальных серверов, hard safe mode, safe mode и тд)
      */
-    private static JSONObject jsonMapperAnswer(ArrayList<ServerObj> listServerObj) {
+    private static VkMessage vkMessageCreatorWithFilters(List<ServerObj> listServerObj) {
+        LoggerFile.writeLog(" Begin creating answer...");
         //Строка для отображения, если серверов не будет
         if (listServerObj.size() == 0) {
             ServerObj serverObjNullInfo = new ServerObj();
@@ -192,123 +191,57 @@ public class ServerManager {
             listServerObj.add(serverObjNullInfo);
         }
 
-        LoggerFile.writeLog(" Begin creating answer...");
-
-        JSONArray jsonWidgetInfo = new JSONArray();
-        JSONObject jsonReqestWidget = new JSONObject();
-
-        JSONObject jsonFirstColumn = new JSONObject();
-        JSONObject jsonSecondColumn = new JSONObject();
-        JSONObject jsonThirdColumn = new JSONObject();
-        JSONObject jsonFourthColumn = new JSONObject();
-
         int online = 0;
         for (ServerObj obj : listServerObj) {
             if (obj.getOnline() > 0)
                 online += obj.getOnline();
         }
-        jsonReqestWidget.put("title", "Общий Онлайн: ");
-        jsonReqestWidget.put("title_counter", online);
-        //jo2.put("title_url","https://vk.com/aveloli?z=photo-149959198_457274585%2Falbum-149959198_00%2Frev"); ANIME
-
-        jsonFirstColumn.put("text", "IP:PORT ");
-        // jj1.put("align", "left");
-        jsonWidgetInfo.add(jsonFirstColumn);
-
-        jsonSecondColumn.put("text", "Сервер");
-        jsonSecondColumn.put("align", "center");
-        jsonWidgetInfo.add(jsonSecondColumn);
-
-        jsonThirdColumn.put("text", "Игроки/Слоты");
-        jsonThirdColumn.put("align", "center");
-        jsonWidgetInfo.add(jsonThirdColumn);
-
-        jsonFourthColumn.put("text", "Official");
-        jsonFourthColumn.put("align", "center");
-        jsonWidgetInfo.add(jsonFourthColumn);
-
-        JSONObject[] jsonServerBaseInfo = new JSONObject[listServerObj.size()];
-        JSONObject[] jsonServerNameInfo = new JSONObject[listServerObj.size()];
-        JSONObject[] jsonServerOnlineInfo = new JSONObject[listServerObj.size()];
-        JSONObject[] jsonServerOfficialInfo = new JSONObject[listServerObj.size()];
-
-        JSONArray[] jsonServerInfo = new JSONArray[listServerObj.size() + 1];
-        JSONArray jsonServersInfo = new JSONArray();
+        VkMessageHead[] vkMessageHeads = new VkMessageHead[4];
+        vkMessageHeads[0] = VkMessageHead.builder().text("IP:PORT ").build();
+        vkMessageHeads[1] = VkMessageHead.builder().text("Сервер").align("center").build();
+        vkMessageHeads[2] = VkMessageHead.builder().text("Игроки/Слоты").align("center").build();
+        vkMessageHeads[3] = VkMessageHead.builder().text("Official").align("center").build();
 
         LoggerFile.writeLog("Servers value: " + listServerObj.size());
 
+        //TODO: добавить поддержку большого кол-во серверов. На пропинговку всех много времени уйдет,
+        // т.ч нужно пинговать только первые, а если они локальные, то добавлять новые
+        listServerObj = listServerObj.stream()
+                //Сервера в черном списке
+                .filter(x -> !blackList.containsKey(x.getIp()))
+                //Отображение только оффициальных серверов
+                .filter(x -> hardSafeMode ? x.getOfficial() == 1 : true)
+                //Отображение мусорных серверов
+                .filter(x -> safeMode ? x.getOnline() > 2 || x.getOfficial() == 1 : true)
+                //Пропинговка серверов (исключение локальных)
+                .filter(x -> showLocal ? true : x.getOfficial() == 1 || pingThisIp(x.getIp()))
+                .collect(Collectors.toList());
+
+        LoggerFile.writeLog("Servers value after filter: " + listServerObj.size());
         int length = listServerObj.size();
         if (length > 10) {
             length = 10;
-            System.out.println("More than 10 servers. Its good!");
+            LoggerFile.writeLog("More than 10 servers. Its good!");
         }
-
-        //Проверки на включенные моды начало.
+        VkMessageBody[][] vkMessageBodies = new VkMessageBody[length][4];
         for (int i = 0; i < length; i++) {
-            //Проверка на мусорные сервера
-            if (safeMode) {
-                if (listServerObj.get(i).getOnline() < 2 && listServerObj.get(i).getOfficial() == 0) {
-                    if (length < listServerObj.size())
-                        length++;
-                    continue;
-                }
-            }
-            //Проверка на не офф сервера
-            if (hardSafeMode) {
-                if (listServerObj.get(i).getOfficial() == 0) {
-                    if (length < listServerObj.size())
-                        length++;
-                    continue;
-                }
-            }
-            //Проверка на сервера в черном списке
-            if (blackList.containsKey(listServerObj.get(i).getIp())) {
-                if (listServerObj.get(i).getOfficial() == 0) {
-                    if (length < listServerObj.size())
-                        length++;
-                    continue;
-                }
-            }
-            //Проверка на локальные сервера
-            if (listServerObj.get(i).getOfficial() == 0)
-                if (!pingThisIp(listServerObj.get(i).getIp())) {
-                    LoggerFile.writeLog("Cant ping this" + listServerObj.get(i).toString() + " \n continue;");
-                    if (length < listServerObj.size())
-                        length++;
-                    continue;
-                }
-            //Проверки на включенные моды конец.
-
-            jsonServerBaseInfo[i] = new JSONObject();
-            jsonServerNameInfo[i] = new JSONObject();
-            jsonServerOnlineInfo[i] = new JSONObject();
-            jsonServerOfficialInfo[i] = new JSONObject();
-
-            jsonServerBaseInfo[i].put("text", listServerObj.get(i).getIp() + ":" + listServerObj.get(i).getPort()); //Имя сервера
-            jsonServerBaseInfo[i].put("icon_id", "club194163484");  //заглушка
-            jsonServerBaseInfo[i].put("url", "https://vk.com/skymp"); //заглушка
-            jsonServerNameInfo[i].put("text", listServerObj.get(i).getName()); //players/slots
-
-            jsonServerOnlineInfo[i].put("text", listServerObj.get(i).getOnline() + "/" + listServerObj.get(i).getMaxPlayers()); //ip/port. Временно?
-
-            if (listServerObj.get(i).getOfficial() == 1) {
-                jsonServerOfficialInfo[i].put("text", "✅"); //Галочка
-            } else {
-                jsonServerOfficialInfo[i].put("text", " "); //не галочка
-            }
-
-            jsonServerInfo[i] = new JSONArray();
-            jsonServerInfo[i].add(jsonServerBaseInfo[i]);
-            jsonServerInfo[i].add(jsonServerNameInfo[i]);
-            jsonServerInfo[i].add(jsonServerOnlineInfo[i]);
-            jsonServerInfo[i].add(jsonServerOfficialInfo[i]);
-            LoggerFile.writeLog(jsonServerInfo[i].toJSONString());
-            jsonServersInfo.add(jsonServerInfo[i]);
+            vkMessageBodies[i][0] = VkMessageBody.builder()
+                    .text(listServerObj.get(i).getIp() + ":" + listServerObj.get(i).getPort())
+                    .icon_id("club194163484") //заглушка
+                    .url("https://vk.com/skymp") //заглушка
+                    .build();
+            vkMessageBodies[i][1] = VkMessageBody.builder()
+                    .text(listServerObj.get(i).getName())
+                    .build();
+            vkMessageBodies[i][2] = VkMessageBody.builder()
+                    .text(listServerObj.get(i).getOnline() + "/" + listServerObj.get(i).getMaxPlayers())
+                    .build();
+            vkMessageBodies[i][3] = VkMessageBody.builder()
+                    .text(listServerObj.get(i).getOfficial() == 1 ? "✅" : " ")
+                    .build();
         }
 
-        jsonReqestWidget.put("head", jsonWidgetInfo);
-        jsonReqestWidget.put("body", jsonServersInfo);
         LoggerFile.writeLog(" End creating answer...");
-        return jsonReqestWidget;
+        return VkMessage.builder().title("Общий онлайн: ").title_counter(online).head(vkMessageHeads).body(vkMessageBodies).build();
     }
 }

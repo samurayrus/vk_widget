@@ -17,7 +17,7 @@ public class SendTimer extends TimerTask {
             String answer = completeTask();
             LoggerFile.writeLog("\n TimerTask end and return: " + answer);
         } catch (IOException ex) {
-            LoggerFile.writeLog(SendTimer.class.getName() + " IOException " + ex.getMessage());
+            LoggerFile.writeLog(SendTimer.class.getName() + " IOException \n" + ex);
         }
     }
 
