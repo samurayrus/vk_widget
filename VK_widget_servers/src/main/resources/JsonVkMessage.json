@@ -1,0 +1,17 @@
+{
+  "head":
+[
+  {"text":"IP:PORT "},
+  {"text":"Сервер","align":"center"},
+  {"text":"Игроки\/Слоты","align":"center"},
+  {"text":"Official","align":"center"}
+],
+  "title_counter":1,
+  "title":"Общий Онлайн: ",
+  "body":[[
+    {"text":"51.158.236.74:7332","icon_id":"club194163484","url":"https:\/\/vk.com\/skymp"},
+    {"text":"Indev"},{"text":"1\/100"},
+    {"text":"✅"}],
+    [{"text":"51.158.236.74:1338","icon_id":"club194163484","url":"https:\/\/vk.com\/skymp"},{"text":"SweetPie"},{"text":"0\/100"},{"text":"✅"}]
+  ]
+}

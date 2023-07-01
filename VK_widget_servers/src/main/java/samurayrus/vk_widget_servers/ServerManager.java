@@ -7,46 +7,60 @@ import com.vk.api.sdk.client.actors.GroupActor;
 import com.vk.api.sdk.exceptions.ClientException;
 import com.vk.api.sdk.httpclient.HttpTransportClient;
 import com.vk.api.sdk.objects.appwidgets.UpdateType;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
 import samurayrus.vk_widget_servers.log.LoggerFile;
+import samurayrus.vk_widget_servers.vk.VkMessage;
+import samurayrus.vk_widget_servers.vk.VkMessageBody;
+import samurayrus.vk_widget_servers.vk.VkMessageHead;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Properties;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * ServerManager проводит полную работу с соединениями и формированием ответов
  *
  * @author SamurayRus
  */
+
 public class ServerManager {
-
-    private static Integer groupId; //id группы. Тут все просто
+    private static final Map<String, String> blackList = new HashMap<>();
+    private static final JsonMapper jsonMapper = new JsonMapper();
+    private static int groupId; //id группы
+    @Getter(AccessLevel.NONE)
     private static String groupToken; //Токен безопасности для доступа к группе. Получается в настройках группы - api и через свое приложение с запросом bridge или,
-    //вроде, как можно установить дефолтное приложение вк по виджетам и зять его токен.
-    private static String URL_adress;
-    private static String OfficialServerIp;
-    private static Boolean SafeMode = false;
-    private static Boolean HardSafeMode = false;
-    private static String path = "/GroupLogin.properties";
-    public static boolean showLocal = false;
+    //вроде, как можно установить дефолтное приложение вк по виджетам и взять его токен.
+    private static String URL_address;
+    @Getter
+    private static String officialServerIp;
+    @Setter
+    @Getter
+    private static boolean safeMode = false;
+    @Setter
+    @Getter
+    private static boolean hardSafeMode = false;
+    @Setter
+    @Getter
+    private static boolean showLocal = false;
 
-    private static HashMap<String, String> blackList = new HashMap();
+    static {
+        setPropertyForWidget();
+        blackList.put("25.25.25.25", "test (:");
+    }
 
-    public static String addBlackListValue(String ip, String text) {
+    public static String addBlackListValue(final String ip, final String text) {
         LoggerFile.writeLog("addBlackListValue:" + ip + " " + text);
         blackList.put(ip, text);
         return "Ok! BlackList Size now: " + blackList.size();
     }
 
-    public static String deleteBlackListValue(String ip) {
+    public static String deleteBlackListValue(final String ip) {
         if (blackList.containsKey(ip)) {
             blackList.remove(ip);
             LoggerFile.writeLog("deleteBlackListValue:" + ip);
@@ -60,32 +74,15 @@ public class ServerManager {
         return blackList.toString();
     }
 
-    public static void setHardSafeMode(Boolean HardSafeMode) {
-        ServerManager.HardSafeMode = HardSafeMode;
-    }
-
-    public static void setSafeMode(Boolean SafeMode) {
-        ServerManager.SafeMode = SafeMode;
-    }
-
-    public static Boolean getSafeMode() {
-        return SafeMode;
-    }
-
-    static {
-        setPropertyForWidget();
-        blackList.put("25.25.25.25", "test (:");
-    }
-
     /**
-     * Пропинговка серверов, чтобы не выводть локальные. Эту проверку можно отключить
+     * Пропинговка серверов, чтобы не выводть локальные. Эту проверку можно отключить (showLocal = true)
      */
-    public static boolean pingThisIp(String ip) {
+    public static boolean pingThisIp(final String ip) {
         LoggerFile.writeLog("Ping to: " + ip);
         //Проверка на локальный адрес
         if (!showLocal) {
-            String[] cas = ip.split("\\.");
-            if (cas[0].equals("127")) {
+            String[] ipArray = ip.split("\\.");
+            if (ipArray[0].equals("127")) {
                 LoggerFile.writeLog("Local Ip: dont Ping this!");
                 return false;
             }
@@ -107,20 +104,21 @@ public class ServerManager {
     /**
      * Загрузка Properties для виджета со всеми данными.
      */
-    public static void setPropertyForWidget() { //Параметры входа из файла
+    public static void setPropertyForWidget() {
         try {
             Properties properties = new Properties();
 
-            String pathToProperty = new File(Widget_main.class.getProtectionDomain().getCodeSource().getLocation().getPath()).getParent();
-            File propertyFile = new File(pathToProperty + path);
-            LoggerFile.writeLog("pathToProperty: " + pathToProperty + " / " + path);
+            String pathToProperty = new File(WidgetApp.class.getProtectionDomain().getCodeSource().getLocation().getPath()).getParent();
+            String propertyName = "/GroupLogin.properties";
+            File propertyFile = new File(pathToProperty + propertyName);
+            LoggerFile.writeLog("pathToProperty: " + pathToProperty + " / " + propertyName);
 
             try (FileInputStream fileInputStream = new FileInputStream(propertyFile)) {
                 properties.load(fileInputStream);
-                groupId = Integer.valueOf(properties.getProperty("GroupId"));
+                groupId = Integer.parseInt(properties.getProperty("GroupId"));
                 groupToken = properties.getProperty("GroupToken");
-                URL_adress = properties.getProperty("URL");
-                OfficialServerIp = properties.getProperty("OfficialServerIp");
+                URL_address = properties.getProperty("URL");
+                officialServerIp = properties.getProperty("OfficialServerIp");
             }
         } catch (IOException ioException) {
             LoggerFile.writeLog("ioException" + ioException.getMessage() + System.lineSeparator());
@@ -130,22 +128,27 @@ public class ServerManager {
     }
 
     /**
-     * Создание нового подключения к SkyMpIo и получение текущих серверов. Возвращает то, что вернет вызов {@link ServerManager#jsonMapperAnswer} ()}
+     * Создание нового подключения к SkyMpIo и получение текущих серверов. Возвращает то, что вернет вызов {@link ServerManager#vkMessageCreatorWithFilters(List< ServerInfoDto )} ()}
      */
-    public static JSONObject loadServersInfoFromSkympApi() throws IOException {
+    public static VkMessage loadServersInfoFromSkympApi() throws IOException {
         try {
-            HttpTransportClient httpTransportClient = new HttpTransportClient(); //Данные с сервера
-            ClientResponse clientResponse = httpTransportClient.get(URL_adress);
+            HttpTransportClient httpTransportClient = new HttpTransportClient();
+            ClientResponse clientResponse = httpTransportClient.get(URL_address);
 
-            LoggerFile.writeLog(" URL: " + URL_adress + System.lineSeparator() + "New Content: " + clientResponse.getContent());
+            LoggerFile.writeLog(" URL: " + URL_address + System.lineSeparator() + "New Content: " + clientResponse.getContent());
 
-            ArrayList<ServerObj> serverObjs = JsonParser.getServerData(clientResponse.getContent());
-            Collections.sort(serverObjs, ServerObj.COMPARE_BY_COUNT); //Сортировка [игроки]/[офф-неофф]
+            ArrayList<ServerInfoDto> serverInfoDtos = jsonMapper.mapJsonToServerObjects(clientResponse.getContent());
 
-            serverObjs.forEach(System.out::println);
-            return jsonMapperAnswer(serverObjs);
+            if (serverInfoDtos == null || serverInfoDtos.isEmpty()) {
+                LoggerFile.writeLog(System.lineSeparator() + " loadServersInfoFromSkympApi - no content");
+                return null;
+            }
+            //Сортировка [игроки]/[офф-неофф]
+            Collections.sort(serverInfoDtos, ServerInfoDto.COMPARE_BY_COUNT);
+            serverInfoDtos.forEach(System.out::println);
+            return vkMessageCreatorWithFilters(serverInfoDtos);
         } catch (NullPointerException ex) {
-            LoggerFile.writeLog(System.lineSeparator() + " Properties File Not Found " + System.lineSeparator());
+            LoggerFile.writeLog(System.lineSeparator() + "loadServersInfoFromSkympApi() exception: " + ex.getMessage());
             return null;
         }
 
@@ -156,158 +159,90 @@ public class ServerManager {
      * Вызывается по таймеру в {@link SendTimer}
      */
     public static String newConnectAndPushInfoInVkApi() throws IOException {
-        TransportClient transportClient = HttpTransportClient.getInstance();  //Канал с vk
+        TransportClient transportClient = HttpTransportClient.getInstance();
         VkApiClient vkApiClient = new VkApiClient(transportClient);
         GroupActor groupActor = new GroupActor(groupId, groupToken);
 
         try {
-            JSONObject jsonServersInfoFromSkympApi = loadServersInfoFromSkympApi();
-            if (jsonServersInfoFromSkympApi == null) {
-                return "ClientException";
+            VkMessage vkMessage = loadServersInfoFromSkympApi();
+            if (vkMessage == null) {
+                return "ClientException: vkMessage is null";
             }
-            return vkApiClient.appWidgets().update(groupActor, "return " + jsonServersInfoFromSkympApi + ";", UpdateType.TABLE).executeAsString();  //Запрос вк с выводом ответа
+            //Запрос вк с выводом ответа
+            return vkApiClient.appWidgets().update(groupActor, "return " + jsonMapper.mapVkMessageToJson(vkMessage) + ";", UpdateType.TABLE).executeAsString();
         } catch (ClientException ex) {
-            return "ClientException";
+            return "ClientException: " + ex.getMessage();
         }
     }
 
-    //TODO: Переделать составление запроса
 
     /**
-     * Формирует сообщение JSON для VkApi со списком серверов для вывода
+     * Формирует сообщение для VkApi со списком серверов для вывода с учетом заданных условий (показ локальных серверов, hard safe mode, safe mode и тд)
      */
-    private static JSONObject jsonMapperAnswer(ArrayList<ServerObj> listServerObj) {
+    private static VkMessage vkMessageCreatorWithFilters(List<ServerInfoDto> listServerInfoDto) {
+        LoggerFile.writeLog(" Begin creating answer...");
         //Строка для отображения, если серверов не будет
-        if (listServerObj.size() == 0) {
-            ServerObj serverObjNullInfo = new ServerObj();
-            serverObjNullInfo.setIp("ServerList is Empty");
-            serverObjNullInfo.setMaxPlayers(0);
-            serverObjNullInfo.setName("None");
-            serverObjNullInfo.setOnline(0);
-            serverObjNullInfo.setPort(0);
-            listServerObj.add(serverObjNullInfo);
+        if (listServerInfoDto.size() == 0) {
+            ServerInfoDto serverInfoDtoNullInfo = new ServerInfoDto();
+            serverInfoDtoNullInfo.setIp("ServerList is Empty");
+            serverInfoDtoNullInfo.setMaxPlayers(0);
+            serverInfoDtoNullInfo.setName("None");
+            serverInfoDtoNullInfo.setOnline(0);
+            serverInfoDtoNullInfo.setPort(0);
+            listServerInfoDto.add(serverInfoDtoNullInfo);
         }
 
-        LoggerFile.writeLog(" Begin creating answer...");
-
-        JSONArray jsonWidgetInfo = new JSONArray();
-        JSONObject jsonReqestWidget = new JSONObject();
-
-        JSONObject jsonFirstColumn = new JSONObject();
-        JSONObject jsonSecondColumn = new JSONObject();
-        JSONObject jsonThirdColumn = new JSONObject();
-        JSONObject jsonFourthColumn = new JSONObject();
-
         int online = 0;
-        for (ServerObj obj : listServerObj) {
+        for (ServerInfoDto obj : listServerInfoDto) {
             if (obj.getOnline() > 0)
                 online += obj.getOnline();
         }
-        jsonReqestWidget.put("title", "Общий Онлайн: ");
-        jsonReqestWidget.put("title_counter", online);
-        //jo2.put("title_url","https://vk.com/aveloli?z=photo-149959198_457274585%2Falbum-149959198_00%2Frev"); ANIME
+        VkMessageHead[] vkMessageHeads = new VkMessageHead[4];
+        vkMessageHeads[0] = VkMessageHead.builder().text("IP:PORT ").build();
+        vkMessageHeads[1] = VkMessageHead.builder().text("Сервер").align("center").build();
+        vkMessageHeads[2] = VkMessageHead.builder().text("Игроки/Слоты").align("center").build();
+        vkMessageHeads[3] = VkMessageHead.builder().text("Official").align("center").build();
 
-        jsonFirstColumn.put("text", "IP:PORT ");
-        // jj1.put("align", "left");
-        jsonWidgetInfo.add(jsonFirstColumn);
+        LoggerFile.writeLog("Servers value: " + listServerInfoDto.size());
 
-        jsonSecondColumn.put("text", "Сервер");
-        jsonSecondColumn.put("align", "center");
-        jsonWidgetInfo.add(jsonSecondColumn);
+        //TODO: добавить поддержку большого кол-во серверов. На пропинговку всех много времени уйдет,
+        // т.ч нужно пинговать только первые, а если они локальные, то добавлять новые
+        listServerInfoDto = listServerInfoDto.stream()
+                //Сервера в черном списке
+                .filter(x -> !blackList.containsKey(x.getIp()))
+                //Отображение только оффициальных серверов
+                .filter(x -> hardSafeMode ? x.getOfficial() == 1 : true)
+                //Отображение мусорных серверов
+                .filter(x -> safeMode ? x.getOnline() > 2 || x.getOfficial() == 1 : true)
+                //Пропинговка серверов (исключение локальных)
+                .filter(x -> showLocal ? true : x.getOfficial() == 1 || pingThisIp(x.getIp()))
+                .collect(Collectors.toList());
 
-        jsonThirdColumn.put("text", "Игроки/Слоты");
-        jsonThirdColumn.put("align", "center");
-        jsonWidgetInfo.add(jsonThirdColumn);
-
-        jsonFourthColumn.put("text", "Official");
-        jsonFourthColumn.put("align", "center");
-        jsonWidgetInfo.add(jsonFourthColumn);
-
-        JSONObject[] jsonServerBaseInfo = new JSONObject[listServerObj.size()];
-        JSONObject[] jsonServerNameInfo = new JSONObject[listServerObj.size()];
-        JSONObject[] jsonServerOnlineInfo = new JSONObject[listServerObj.size()];
-        JSONObject[] jsonServerOfficialInfo = new JSONObject[listServerObj.size()];
-
-        JSONArray[] jsonServerInfo = new JSONArray[listServerObj.size() + 1];
-        JSONArray jsonServersInfo = new JSONArray();
-
-        LoggerFile.writeLog("Servers value: " + listServerObj.size());
-
-        int length = listServerObj.size();
+        LoggerFile.writeLog("Servers value after filter: " + listServerInfoDto.size());
+        int length = listServerInfoDto.size();
         if (length > 10) {
             length = 10;
-            System.out.println("More than 10 servers. Its good!");
+            LoggerFile.writeLog("More than 10 servers. Its good!");
         }
-
-        //Проверки на включенные моды начало.
+        VkMessageBody[][] vkMessageBodies = new VkMessageBody[length][4];
         for (int i = 0; i < length; i++) {
-
-            if (SafeMode) { //Проверка на мусорные сервера
-                if (listServerObj.get(i).getOnline() < 2 && listServerObj.get(i).getOfficial() == 0) {
-                    if (length < listServerObj.size())
-                        length++;
-                    continue;
-                }
-            }
-            if (HardSafeMode) { //Проверка на не офф сервера
-                if (listServerObj.get(i).getOfficial() == 0) {
-                    if (length < listServerObj.size())
-                        length++;
-                    continue;
-                }
-            }
-
-            if (blackList.containsKey(listServerObj.get(i).getIp())) { //Проверка на сервера в черном списке
-                if (listServerObj.get(i).getOfficial() == 0) {
-                    if (length < listServerObj.size())
-                        length++;
-                    continue;
-                }
-            }
-
-            if (listServerObj.get(i).getOfficial() == 0)   //Проверка на локальные сервера
-                if (!pingThisIp(listServerObj.get(i).getIp())) {
-                    LoggerFile.writeLog("Cant ping this" + listServerObj.get(i).toString() + " \n continue;");
-                    if (length < listServerObj.size())
-                        length++;
-                    continue;
-                }
-            //Проверки на включенные моды конец.
-
-            jsonServerBaseInfo[i] = new JSONObject();
-            jsonServerNameInfo[i] = new JSONObject();
-            jsonServerOnlineInfo[i] = new JSONObject();
-            jsonServerOfficialInfo[i] = new JSONObject();
-
-            jsonServerBaseInfo[i].put("text", listServerObj.get(i).getIp() + ":" + listServerObj.get(i).getPort()); //Имя сервера
-            jsonServerBaseInfo[i].put("icon_id", "club194163484");  //заглушка
-            jsonServerBaseInfo[i].put("url", "https://vk.com/skymp"); //заглушка
-            jsonServerNameInfo[i].put("text", listServerObj.get(i).getName()); //players/slots
-
-            jsonServerOnlineInfo[i].put("text", listServerObj.get(i).getOnline() + "/" + listServerObj.get(i).getMaxPlayers()); //ip/port. Временно?
-
-            if (listServerObj.get(i).getOfficial() == 1) {
-                jsonServerOfficialInfo[i].put("text", "✅"); //Галочка
-            } else {
-                jsonServerOfficialInfo[i].put("text", " "); //не галочка
-            }
-
-            jsonServerInfo[i] = new JSONArray();
-            jsonServerInfo[i].add(jsonServerBaseInfo[i]);
-            jsonServerInfo[i].add(jsonServerNameInfo[i]);
-            jsonServerInfo[i].add(jsonServerOnlineInfo[i]);
-            jsonServerInfo[i].add(jsonServerOfficialInfo[i]);
-            LoggerFile.writeLog(jsonServerInfo[i].toJSONString());
-            jsonServersInfo.add(jsonServerInfo[i]);
+            vkMessageBodies[i][0] = VkMessageBody.builder()
+                    .text(listServerInfoDto.get(i).getIp() + ":" + listServerInfoDto.get(i).getPort())
+                    .icon_id("club194163484") //заглушка
+                    .url("https://vk.com/skymp") //заглушка
+                    .build();
+            vkMessageBodies[i][1] = VkMessageBody.builder()
+                    .text(listServerInfoDto.get(i).getName())
+                    .build();
+            vkMessageBodies[i][2] = VkMessageBody.builder()
+                    .text(listServerInfoDto.get(i).getOnline() + "/" + listServerInfoDto.get(i).getMaxPlayers())
+                    .build();
+            vkMessageBodies[i][3] = VkMessageBody.builder()
+                    .text(listServerInfoDto.get(i).getOfficial() == 1 ? "✅" : " ")
+                    .build();
         }
 
-        jsonReqestWidget.put("head", jsonWidgetInfo);
-        jsonReqestWidget.put("body", jsonServersInfo);
-        LoggerFile.writeLog(" End creatind answer...");
-        return jsonReqestWidget;
-    }
-
-    public static String getOfficialServerIp() {
-        return OfficialServerIp;
+        LoggerFile.writeLog(" End creating answer...");
+        return VkMessage.builder().title("Общий онлайн: ").title_counter(online).head(vkMessageHeads).body(vkMessageBodies).build();
     }
 }

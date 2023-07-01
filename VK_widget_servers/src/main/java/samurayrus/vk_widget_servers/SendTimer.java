@@ -14,14 +14,10 @@ public class SendTimer extends TimerTask {
     public void run() {
         try {
             LoggerFile.writeLog("\n TimerTask begin in:" + new Date());
-            String answer = completeTask();
-            LoggerFile.writeLog("\n TimerTask end and return: " + answer + "\n");
+            String answer = ServerManager.newConnectAndPushInfoInVkApi();
+            LoggerFile.writeLog("\n TimerTask end and return: " + answer);
         } catch (IOException ex) {
-            LoggerFile.writeLog(SendTimer.class.getName() + " IOException " + ex.getMessage());
+            LoggerFile.writeLog(SendTimer.class.getName() + " IOException \n" + ex);
         }
-    }
-
-    private String completeTask() throws IOException {
-        return ServerManager.newConnectAndPushInfoInVkApi();
     }
 }

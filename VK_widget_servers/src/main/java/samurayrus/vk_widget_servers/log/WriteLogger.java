@@ -7,30 +7,31 @@ import java.io.IOException;
 import java.util.Date;
 
 public class WriteLogger {
-    private String path;
+    private final String path;
     private FileWriter fileWriter;
     private BufferedWriter bufferedWriter;
-    private File file;
-    private boolean adding;
+    private final boolean adding;
 
-    public WriteLogger(String path, boolean adding) {
+    public WriteLogger(final String path, final boolean adding) {
         this.path = path;
         this.adding = adding;
-        filecreator();
+        fileCreator();
     }
 
     //Создание файла для записи результатов или же поиск его и добавление первой строки с датой
-    private void filecreator() {
+    private void fileCreator() {
         try {
-            if (path == null || path.equals("-")) {  //Создает новый файл, если не был указан в аргументах (пересоздает уже созданный там)
+            File file;
+            //Создает новый файл, если не был указан в аргументах (пересоздает уже созданный там)
+            if (path == null || path.equals("-")) {
                 file = new File("LogFile.txt");
                 System.out.println("File [LogFile.txt] was created using the default path " + file.getAbsolutePath());
             } else {
                 file = new File(path);
                 System.out.println("File Path " + file.getAbsolutePath());
             }
-
-            fileWriter = new FileWriter(file, adding); //true чтобы не перезаписывать файл, а добавлять в конец.
+            //true чтобы не перезаписывать файл, а добавлять в конец.
+            fileWriter = new FileWriter(file, adding);
             bufferedWriter = new BufferedWriter(fileWriter);
             bufferedWriter.write("___Start Log in" + new Date().toString() + "____");
             bufferedWriter.newLine();
@@ -41,18 +42,19 @@ public class WriteLogger {
     }
 
 
-    public void writeAnswer(String answer) {
+    public void writeAnswer(final String answer) {
         try {
-            String ans[] = answer.split("\n");  //Чтобы ответ был не в одну строку, а блоком. Так читабельней
+            //Чтобы ответ был не в одну строку, а блоком. Так читабельней
+            String[] answerMessageBlock = answer.split("\n");
 
-            for (int h = 1; h < ans.length; h++) {
+            for (int h = 1; h < answerMessageBlock.length; h++) {
                 bufferedWriter.newLine();
-                bufferedWriter.write(ans[h]);
+                bufferedWriter.write(answerMessageBlock[h]);
                 bufferedWriter.flush();
             }
         } catch (IOException e) {
             System.out.println("IOException Записи результата");
-        } catch (NullPointerException ex) {   //Не должно выскакивать, но на будущее впишу.
+        } catch (NullPointerException ex) {
             ex.printStackTrace();
             System.out.println("Запись невозможна, т.к не был инициализирован filecreator()");
         }
@@ -66,7 +68,8 @@ public class WriteLogger {
         } catch (IOException e) {
             e.printStackTrace();
             System.out.println("Ошибка закрытия FileWriter");
-        } catch (NullPointerException ex) {  //Не выбрасывается, но решил добавить. Мало ли в будущем этот метод будет вызываться в другом порядке, нежели в ConsoleMain
+            //Не выбрасывается, но решил добавить. Мало ли в будущем этот метод будет вызываться в другом порядке, нежели в ConsoleMain
+        } catch (NullPointerException ex) {
             ex.printStackTrace();
             System.out.println("Ошибка закрытия FileWriter = null?");
         }

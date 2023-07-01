@@ -20,7 +20,6 @@
             <artifactId>sdk</artifactId>
             <version>1.0.10</version>
         </dependency>
-
         <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-jdk14 -->
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -28,7 +27,6 @@
             <version>2.0.0-alpha1</version>
             <scope>test</scope>
         </dependency>
-
         <!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-slf4j-impl -->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
@@ -48,7 +46,6 @@
             <artifactId>log4j-core</artifactId>
             <version>2.13.1</version>
         </dependency>
-
         <!-- https://mvnrepository.com/artifact/com.googlecode.json-simple/json-simple -->
         <dependency>
             <groupId>com.googlecode.json-simple</groupId>
@@ -56,14 +53,12 @@
             <version>1.1.1</version>
             <type>jar</type>
         </dependency>
-
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
             <version>3.12.2</version>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
@@ -82,6 +77,20 @@
             <version>2.9.8</version>
             <type>jar</type>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.28</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>RELEASE</version>
+            <scope>compile</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -91,7 +100,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>samurayrus.vk_widget_servers.Widget_main</mainClass>
+                            <mainClass>samurayrus.vk_widget_servers.WidgetApp</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>

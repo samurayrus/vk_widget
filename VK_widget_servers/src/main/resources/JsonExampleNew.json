@@ -1,0 +1,14 @@
+[
+  {"ip":"51.158.236.73","port":1337,"name":"Of1","maxPlayers":100,"online":0},
+  {"ip":"51.158.236.73","port":7331,"name":"Of2","maxPlayers":100,"online":5},
+  {"ip":"25.25.25.25","port":2222,"name":"BlackList","maxPlayers":25,"online":0},
+  {"ip":"33.33.33.33","port":2222,"name":"t1","maxPlayers":55,"online":0},
+  {"ip":"54.44.4.44","port":2222,"name":"t2","maxPlayers":5000,"online":1245},
+  {"ip":"2.211.11.3","port":23321,"name":"t3","maxPlayers":123,"online":0},
+  {"ip":"34.34.34.34","port":3211,"name":"t4","maxPlayers":44,"online":0},
+  {"ip":"51.55.55.11","port":1234,"name":"t5","maxPlayers":4,"online":3},
+  {"ip":"54.54.4.44","port":123,"name":"t6","maxPlayers":1500,"online":256},
+  {"ip":"99.211.11.3","port":4112,"name":"t7","maxPlayers":1,"online":0},
+  {"ip":"34.44.34.34","port":145,"name":"t8","maxPlayers":66,"online":0},
+  {"ip":"35.55.55.11","port":8080,"name":"t9","maxPlayers":6,"online":3}
+]
