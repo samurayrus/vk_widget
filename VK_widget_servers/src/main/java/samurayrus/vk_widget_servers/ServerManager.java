@@ -122,9 +122,9 @@ public class ServerManager {
                 officialServerIp = properties.getProperty("OfficialServerIp");
             }
         } catch (IOException ioException) {
-            Logger.logInfo("ioException" + ioException.getMessage() + System.lineSeparator());
+            Logger.logError("ioException Properties File Not Found " + ioException.getMessage() + System.lineSeparator());
         } catch (java.lang.IllegalArgumentException | NullPointerException ex) {
-            Logger.logInfo(" Properties File Not Found " + System.lineSeparator());
+            Logger.logError("IllegalArgumentException Properties File Not Found " + System.lineSeparator());
         }
     }
 
