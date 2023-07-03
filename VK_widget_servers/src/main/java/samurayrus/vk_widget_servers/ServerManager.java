@@ -198,6 +198,7 @@ public class ServerManager {
             if (obj.getOnline() > 0)
                 online += obj.getOnline();
         }
+        //TODO: добавить конфиг файл для кастомных виджетов
         VkMessageHead[] vkMessageHeads = new VkMessageHead[4];
         vkMessageHeads[0] = VkMessageHead.builder().text("IP:PORT ").build();
         vkMessageHeads[1] = VkMessageHead.builder().text("Сервер").align("center").build();
