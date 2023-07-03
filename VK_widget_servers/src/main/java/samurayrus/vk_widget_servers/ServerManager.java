@@ -10,7 +10,7 @@ import com.vk.api.sdk.objects.appwidgets.UpdateType;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-import samurayrus.vk_widget_servers.log.LoggerFile;
+import samurayrus.vk_widget_servers.log.Logger;
 import samurayrus.vk_widget_servers.vk.VkMessage;
 import samurayrus.vk_widget_servers.vk.VkMessageBody;
 import samurayrus.vk_widget_servers.vk.VkMessageHead;
@@ -55,7 +55,7 @@ public class ServerManager {
     }
 
     public static String addBlackListValue(final String ip, final String text) {
-        LoggerFile.writeLog("addBlackListValue:" + ip + " " + text);
+        Logger.logInfo("addBlackListValue:" + ip + " " + text);
         blackList.put(ip, text);
         return "Ok! BlackList Size now: " + blackList.size();
     }
@@ -63,7 +63,7 @@ public class ServerManager {
     public static String deleteBlackListValue(final String ip) {
         if (blackList.containsKey(ip)) {
             blackList.remove(ip);
-            LoggerFile.writeLog("deleteBlackListValue:" + ip);
+            Logger.logInfo("deleteBlackListValue:" + ip);
             return "OK! BlackList Size now: " + blackList.size();
         } else {
             return "Not Found this ip. BlackList Size now: " + blackList.size();
@@ -78,12 +78,13 @@ public class ServerManager {
      * Пропинговка серверов, чтобы не выводть локальные. Эту проверку можно отключить (showLocal = true)
      */
     public static boolean pingThisIp(final String ip) {
-        LoggerFile.writeLog("Ping to: " + ip);
+
+        Logger.logInfo("Ping to: " + ip);
         //Проверка на локальный адрес
         if (!showLocal) {
             String[] ipArray = ip.split("\\.");
             if (ipArray[0].equals("127")) {
-                LoggerFile.writeLog("Local Ip: dont Ping this!");
+                Logger.logInfo("Local Ip: dont Ping this!");
                 return false;
             }
             //Пропинговка
@@ -91,10 +92,10 @@ public class ServerManager {
                 InetAddress inetAddress = InetAddress.getByName(ip);
                 return inetAddress.isReachable(500);
             } catch (UnknownHostException ex) {
-                LoggerFile.writeLog("UnknownHostException " + ex.getMessage());
+                Logger.logInfo("UnknownHostException " + ex.getMessage());
                 return false;
             } catch (IOException ex) {
-                LoggerFile.writeLog("IOException " + ex.getMessage());
+                Logger.logInfo("IOException " + ex.getMessage());
                 return false;
             }
         }
@@ -111,7 +112,7 @@ public class ServerManager {
             String pathToProperty = new File(WidgetApp.class.getProtectionDomain().getCodeSource().getLocation().getPath()).getParent();
             String propertyName = "/GroupLogin.properties";
             File propertyFile = new File(pathToProperty + propertyName);
-            LoggerFile.writeLog("pathToProperty: " + pathToProperty + " / " + propertyName);
+            Logger.logInfo("pathToProperty: " + pathToProperty + propertyName);
 
             try (FileInputStream fileInputStream = new FileInputStream(propertyFile)) {
                 properties.load(fileInputStream);
@@ -121,9 +122,9 @@ public class ServerManager {
                 officialServerIp = properties.getProperty("OfficialServerIp");
             }
         } catch (IOException ioException) {
-            LoggerFile.writeLog("ioException" + ioException.getMessage() + System.lineSeparator());
+            Logger.logInfo("ioException" + ioException.getMessage() + System.lineSeparator());
         } catch (java.lang.IllegalArgumentException | NullPointerException ex) {
-            LoggerFile.writeLog(" Properties File Not Found " + System.lineSeparator());
+            Logger.logInfo(" Properties File Not Found " + System.lineSeparator());
         }
     }
 
@@ -135,20 +136,20 @@ public class ServerManager {
             HttpTransportClient httpTransportClient = new HttpTransportClient();
             ClientResponse clientResponse = httpTransportClient.get(URL_address);
 
-            LoggerFile.writeLog(" URL: " + URL_address + System.lineSeparator() + "New Content: " + clientResponse.getContent());
+            Logger.logInfo(" URL: " + URL_address + System.lineSeparator() + "New Content: " + clientResponse.getContent());
 
-            ArrayList<ServerInfoDto> serverInfoDtos = jsonMapper.mapJsonToServerObjects(clientResponse.getContent());
+            List<ServerInfoDto> serverInfoDtos = jsonMapper.mapJsonToServerObjects(clientResponse.getContent());
 
             if (serverInfoDtos == null || serverInfoDtos.isEmpty()) {
-                LoggerFile.writeLog(System.lineSeparator() + " loadServersInfoFromSkympApi - no content");
+                Logger.logWarn(System.lineSeparator() + " loadServersInfoFromSkympApi - no content");
                 return null;
             }
             //Сортировка [игроки]/[офф-неофф]
             Collections.sort(serverInfoDtos, ServerInfoDto.COMPARE_BY_COUNT);
-            serverInfoDtos.forEach(System.out::println);
+//            serverInfoDtos.forEach(System.out::println);
             return vkMessageCreatorWithFilters(serverInfoDtos);
         } catch (NullPointerException ex) {
-            LoggerFile.writeLog(System.lineSeparator() + "loadServersInfoFromSkympApi() exception: " + ex.getMessage());
+            Logger.logError("loadServersInfoFromSkympApi() NullPointerException exception: " + ex);
             return null;
         }
 
@@ -156,7 +157,7 @@ public class ServerManager {
 
     /**
      * Создание нового подключения к VkApi, посылка того, что вернет вызов {@link ServerManager#loadServersInfoFromSkympApi}
-     * Вызывается по таймеру в {@link SendTimer}
+     * Вызывается по таймеру в {@link ServerManagerTimer}
      */
     public static String newConnectAndPushInfoInVkApi() throws IOException {
         TransportClient transportClient = HttpTransportClient.getInstance();
@@ -166,21 +167,21 @@ public class ServerManager {
         try {
             VkMessage vkMessage = loadServersInfoFromSkympApi();
             if (vkMessage == null) {
-                return "ClientException: vkMessage is null";
+                throw new ClientException("VkMessage is null");
             }
             //Запрос вк с выводом ответа
             return vkApiClient.appWidgets().update(groupActor, "return " + jsonMapper.mapVkMessageToJson(vkMessage) + ";", UpdateType.TABLE).executeAsString();
         } catch (ClientException ex) {
+            Logger.logError("ClientException - " + ex);
             return "ClientException: " + ex.getMessage();
         }
     }
-
 
     /**
      * Формирует сообщение для VkApi со списком серверов для вывода с учетом заданных условий (показ локальных серверов, hard safe mode, safe mode и тд)
      */
     private static VkMessage vkMessageCreatorWithFilters(List<ServerInfoDto> listServerInfoDto) {
-        LoggerFile.writeLog(" Begin creating answer...");
+        Logger.logInfo("Begin creating answer...");
         //Строка для отображения, если серверов не будет
         if (listServerInfoDto.size() == 0) {
             ServerInfoDto serverInfoDtoNullInfo = new ServerInfoDto();
@@ -203,7 +204,7 @@ public class ServerManager {
         vkMessageHeads[2] = VkMessageHead.builder().text("Игроки/Слоты").align("center").build();
         vkMessageHeads[3] = VkMessageHead.builder().text("Official").align("center").build();
 
-        LoggerFile.writeLog("Servers value: " + listServerInfoDto.size());
+        Logger.logInfo("Servers value: " + listServerInfoDto.size());
 
         //TODO: добавить поддержку большого кол-во серверов. На пропинговку всех много времени уйдет,
         // т.ч нужно пинговать только первые, а если они локальные, то добавлять новые
@@ -218,11 +219,12 @@ public class ServerManager {
                 .filter(x -> showLocal ? true : x.getOfficial() == 1 || pingThisIp(x.getIp()))
                 .collect(Collectors.toList());
 
-        LoggerFile.writeLog("Servers value after filter: " + listServerInfoDto.size());
+        Logger.logInfo("Servers value after filter: " + listServerInfoDto.size());
+
         int length = listServerInfoDto.size();
         if (length > 10) {
             length = 10;
-            LoggerFile.writeLog("More than 10 servers. Its good!");
+            Logger.logInfo("More than 10 servers. Its good!");
         }
         VkMessageBody[][] vkMessageBodies = new VkMessageBody[length][4];
         for (int i = 0; i < length; i++) {
@@ -242,7 +244,7 @@ public class ServerManager {
                     .build();
         }
 
-        LoggerFile.writeLog(" End creating answer...");
+        Logger.logInfo("End creating answer...");
         return VkMessage.builder().title("Общий онлайн: ").title_counter(online).head(vkMessageHeads).body(vkMessageBodies).build();
     }
 }

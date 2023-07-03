@@ -50,9 +50,9 @@ public class ServerInfoDto {
         else return 0;
     }
 
+    //Сортировка. Игроки 1 серв - игроки 2 серв + значение офф/неофф. В итоге офф всегда будут на вершине.
+    //Макс игроков по плану 2к, т.ч 10к более чем надо.
     public static final Comparator<ServerInfoDto> COMPARE_BY_COUNT = new Comparator<ServerInfoDto>() {
-        //Сортировка. Игроки 1 серв - игроки 2 серв + значение офф/неофф. В итоге офф всегда будут на вершине.
-        //Макс игроков по плану 2к, т.ч 10к более чем надо.
         @Override
         public int compare(ServerInfoDto lhs, ServerInfoDto rhs) {
             return rhs.getOnline() - lhs.getOnline() + rhs.getOfficial() * 10000 - lhs.getOfficial() * 10000;
@@ -61,7 +61,7 @@ public class ServerInfoDto {
 
     @Override
     public String toString() {
-        return "ServerObj{" +
+        return "ServerInfo{" +
                 "ServerName=" + getName() +
                 ", IP='" + getIp() + '\'' +
                 ", PORT='" + getPort() + '\'' +
