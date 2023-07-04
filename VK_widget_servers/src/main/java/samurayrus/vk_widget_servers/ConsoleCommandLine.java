@@ -1,5 +1,7 @@
 package samurayrus.vk_widget_servers;
 
+import samurayrus.vk_widget_servers.log.Logger;
+
 import java.util.Scanner;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -19,7 +21,7 @@ public class ConsoleCommandLine extends Thread {
     @Override
     public void run() {
         start_widget();
-        System.out.println("Console_start");
+        Logger.logInfo("Console Start");
         while (work) {
             A:
             try {
@@ -63,17 +65,17 @@ public class ConsoleCommandLine extends Thread {
 
                         case "s":
                             ServerManager.setSafeMode(Boolean.parseBoolean(com[1]));
-                            System.out.println("SafeMode set " + Boolean.parseBoolean(com[1]));
+                            Logger.logUser("SafeMode set " + Boolean.parseBoolean(com[1]));
                             break;
 
                         case "local":
                             ServerManager.setShowLocal(Boolean.parseBoolean(com[1]));
-                            System.out.println("showLocal servers set " + Boolean.parseBoolean(com[1]));
+                            Logger.logUser("showLocal servers set " + Boolean.parseBoolean(com[1]));
                             break;
 
                         case "Hs":
                             ServerManager.setHardSafeMode(Boolean.parseBoolean(com[1]));
-                            System.out.println("HardSafeMode set " + Boolean.parseBoolean(com[1]));
+                            Logger.logUser("HardSafeMode set " + Boolean.parseBoolean(com[1]));
                             break;
 
                         case "blA":
@@ -81,15 +83,15 @@ public class ConsoleCommandLine extends Thread {
                             for (int i = 2; i < com.length; i++) {
                                 text.append(com[i]);
                             }
-                            System.out.println(ServerManager.addBlackListValue(com[1], text.toString()));
+                            Logger.logUser(ServerManager.addBlackListValue(com[1], text.toString()));
                             break;
 
                         case "blR":
-                            System.out.println(ServerManager.deleteBlackListValue(com[1]));
+                            Logger.logUser(ServerManager.deleteBlackListValue(com[1]));
                             break;
 
                         case "blS":
-                            System.out.println(ServerManager.showBlackList());
+                            Logger.logUser(ServerManager.showBlackList());
                             break;
 
                         case "q":
@@ -100,9 +102,9 @@ public class ConsoleCommandLine extends Thread {
                             int newTimerValueInSeconds = Integer.parseInt(com[1]);
                             if (newTimerValueInSeconds > 30) {
                                 timer_set(newTimerValueInSeconds);
-                                System.out.println("Timer set " + newTimerValueInSeconds);
+                                Logger.logUser("Timer set " + newTimerValueInSeconds);
                             } else {
-                                System.out.println("Error -> \n Try again \n {newTimerValueInSeconds X} / where X - Integer, not null, MIN 30 (sec)");
+                                Logger.logUserError("Error -> \n Try again \n {newTimerValueInSeconds X} / where X - Integer, not null, MIN 30 (sec)");
                             }
                             break;
 
@@ -118,10 +120,8 @@ public class ConsoleCommandLine extends Thread {
                             break;
                     }
                 }
-            } catch (NumberFormatException ex) {
-                System.out.println("NumberFormatException\n");
-            } catch (java.lang.ArrayIndexOutOfBoundsException exx) {
-                System.out.println("ArrayIndexOutOfBoundsException\n");
+            } catch (NumberFormatException | ArrayIndexOutOfBoundsException ex) {
+                Logger.logUserError("error when using the console " + ex.getMessage());
             } finally {
                 //break A;
             }
@@ -132,38 +132,37 @@ public class ConsoleCommandLine extends Thread {
         if (timer != null) {
             timer.cancel();
         }
-        System.out.println("pause_widget");
+        Logger.logUser("Widget on pause");
     }
 
     private void timer_set(int newTimerValueInSeconds) {
         pause_widget();
 
-        timerTask = new SendTimer();
+        timerTask = new ServerManagerTimer();
         timer = new java.util.Timer(true);
         timer.scheduleAtFixedRate(timerTask, 0, newTimerValueInSeconds * 1000); // (50 * 1000 миллисекунд)
         timerValueInSeconds = newTimerValueInSeconds;
-        System.out.println("samurayrus.vk_widget_servers.ConsoleCom.timer_set() " + "ok");
+        Logger.logUser("Timer new value set " + newTimerValueInSeconds);
     }
 
     private void restart_widget() {
         pause_widget();
         ServerManager.setPropertyForWidget();
         start_widget();
-        System.out.println("samurayrus.vk_widget_servers.ConsoleCom.restart_widget() " + "restarted");
+        Logger.logUser("Restart Widget");
     }
 
     private void start_widget() {
         pause_widget();
-        timerTask = new SendTimer();
+        timerTask = new ServerManagerTimer();
         timer = new Timer(true);
         timer.scheduleAtFixedRate(timerTask, 0, timerValueInSeconds * 1000); // (50 * 1000 миллисекунд)
-
-        System.out.println("samurayrus.vk_widget_servers.ConsoleCom.start_widget() " + "yes");
+        Logger.logUser("Start Widget");
     }
 
     private void exit_widget() {
         pause_widget();
         work = false;
-        System.out.println("samurayrus.vk_widget_servers.ConsoleCom.exit_widget() " + "Exit");
+        Logger.logUser("Exit");
     }
 }
