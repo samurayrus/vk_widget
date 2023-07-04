@@ -92,10 +92,10 @@ public class ServerManager {
                 InetAddress inetAddress = InetAddress.getByName(ip);
                 return inetAddress.isReachable(500);
             } catch (UnknownHostException ex) {
-                Logger.logInfo("UnknownHostException " + ex.getMessage());
+                Logger.logError("UnknownHostException " + ex.getMessage(), ex);
                 return false;
             } catch (IOException ex) {
-                Logger.logInfo("IOException " + ex.getMessage());
+                Logger.logError("IOException " + ex.getMessage(), ex);
                 return false;
             }
         }
@@ -122,9 +122,9 @@ public class ServerManager {
                 officialServerIp = properties.getProperty("OfficialServerIp");
             }
         } catch (IOException ioException) {
-            Logger.logError("ioException Properties File Not Found " + ioException.getMessage() + System.lineSeparator());
+            Logger.logError("ioException Properties File Not Found " + ioException.getMessage(), ioException);
         } catch (java.lang.IllegalArgumentException | NullPointerException ex) {
-            Logger.logError("IllegalArgumentException Properties File Not Found " + System.lineSeparator());
+            Logger.logError("IllegalArgumentException Properties File Not Found " + ex.getMessage(), ex);
         }
     }
 
@@ -149,7 +149,7 @@ public class ServerManager {
 //            serverInfoDtos.forEach(System.out::println);
             return vkMessageCreatorWithFilters(serverInfoDtos);
         } catch (NullPointerException ex) {
-            Logger.logError("loadServersInfoFromSkympApi() NullPointerException exception: " + ex);
+            Logger.logError("loadServersInfoFromSkympApi() NullPointerException exception: ", ex);
             return null;
         }
 
@@ -172,7 +172,7 @@ public class ServerManager {
             //Запрос вк с выводом ответа
             return vkApiClient.appWidgets().update(groupActor, "return " + jsonMapper.mapVkMessageToJson(vkMessage) + ";", UpdateType.TABLE).executeAsString();
         } catch (ClientException ex) {
-            Logger.logError("ClientException - " + ex);
+            Logger.logError("ClientException: " + ex.getMessage(), ex);
             return "ClientException: " + ex.getMessage();
         }
     }

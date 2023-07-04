@@ -26,7 +26,10 @@ public class Logger {
         loggerWirter.writeLog(String.format(getDefaultLogMessage(), LogEnum.WARN, log));
     }
 
-    public static void logError(final String log) {
-        loggerWirter.writeLog(String.format(getDefaultLogMessage(), LogEnum.ERROR, log));
+    public static void logError(final String log, final Exception exception) {
+        loggerWirter.writeLogWithExceptionTrace(
+                String.format(getDefaultLogMessage(), LogEnum.ERROR, log),
+                exception
+        );
     }
 }

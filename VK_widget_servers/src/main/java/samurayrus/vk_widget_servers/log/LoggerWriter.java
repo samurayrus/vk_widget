@@ -1,9 +1,6 @@
 package samurayrus.vk_widget_servers.log;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -69,12 +66,21 @@ public class LoggerWriter {
             }
         } catch (IOException e) {
             e.printStackTrace();
-            System.err.println("IOException Записи результата");
+            System.err.println("IOException Записи результата. " + e.getMessage());
         } catch (NullPointerException ex) {
             ex.printStackTrace();
             System.err.println("Запись невозможна, т.к не был инициализирован filecreator()");
         }
+    }
 
+    public void writeLogWithExceptionTrace(final String log, final Exception exception){
+        writeLog(log + System.lineSeparator() + getStackTraceFromException(exception));
+    }
+    
+    private String getStackTraceFromException(final Exception exception){
+        StringWriter errors = new StringWriter();
+        exception.printStackTrace(new PrintWriter(errors));
+        return errors.toString();
     }
 
     public void closer() {

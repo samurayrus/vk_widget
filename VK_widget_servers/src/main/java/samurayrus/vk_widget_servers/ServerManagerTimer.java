@@ -17,9 +17,9 @@ public class ServerManagerTimer extends TimerTask {
             if (answer.equals("{\"response\":1}"))
                 Logger.logInfo("TimerTask end and return: " + answer);
             else
-                Logger.logError("VkApi answer is not success! Returned answer: " + answer);
+                Logger.logWarn("VkApi answer is not success! Returned answer: " + answer);
         } catch (IOException ex) {
-            Logger.logError(ServerManagerTimer.class.getName() + " IOException \n" + ex);
+            Logger.logError(ServerManagerTimer.class.getName() + " IOException", ex);
         }
     }
 }
