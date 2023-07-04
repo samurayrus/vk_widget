@@ -1,0 +1,13 @@
+version: "3.8"
+services:
+  # VK_WIDGET************************************
+  vk_widget:
+    image: vk_widget
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    volumes:
+      - vk_widget:/app
+
+volumes:
+  vk_widget:
